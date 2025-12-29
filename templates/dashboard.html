@@ -2,133 +2,175 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>마이 대시보드 - Mango Chain</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
-    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <style>
-        :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
-        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
-
-        /* 네비게이션바 */
+        :root { --bg-color: #111111; --card-color: #1f1f1f; --point-color: #FFC107; --text-color: #ffffff; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; padding-top: 80px; }
+        
+        /* 공통 스타일 */
         .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; }
-        .nav-link { color: #ccc !important; }
         .btn-logout { border: 1px solid #444; color: #fff; border-radius: 20px; padding: 5px 15px; font-size: 0.8rem; }
-        .btn-logout:hover { background: #333; color: #fff; }
-
-        .dashboard-container { max-width: 800px; margin: 100px auto 50px auto; padding: 20px; }
+        .section-card { background: var(--card-color); border: 1px solid #333; border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+        .section-title { font-weight: 700; font-size: 1.1rem; margin-bottom: 20px; color: var(--point-color); display: flex; align-items: center; gap: 10px; }
         
-        /* 웰컴 섹션 */
-        .welcome-box { text-align: left; margin-bottom: 30px; }
-        .user-name { color: var(--point-color); font-weight: 800; font-size: 2rem; }
-        .expiry-date { color: #666; font-size: 0.9rem; margin-top: 5px; }
-
-        /* 상태 카드 그리드 */
-        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        /* 폼 스타일 */
+        .form-label { font-size: 0.9rem; color: #aaa; margin-top: 10px; }
+        .form-control, .form-select { background: #111; border: 1px solid #444; color: #fff; }
+        .form-control:focus, .form-select:focus { background: #111; color: #fff; border-color: var(--point-color); box-shadow: none; }
         
-        .status-card {
-            background: #1f1f1f; border: 1px solid #333; border-radius: 15px; padding: 20px;
-            display: flex; flex-direction: column; justify-content: center;
-        }
-        .card-label { color: #888; font-size: 0.85rem; margin-bottom: 5px; }
-        .card-value { font-size: 1.5rem; font-weight: bold; color: #fff; }
-        
-        /* 봇 상태 ON/OFF 디자인 */
-        .bot-on { color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
-        .bot-off { color: #e74c3c; }
+        /* 체크박스 버튼 그룹 */
+        .btn-check-group { display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-check + .btn-outline-warning { border-color: #444; color: #aaa; }
+        .btn-check:checked + .btn-outline-warning { background-color: var(--point-color); color: #000; border-color: var(--point-color); }
 
-        /* API 키 입력 섹션 */
-        .api-section {
-            background: #1f1f1f; border: 1px solid var(--point-color); border-radius: 15px; padding: 25px;
-            margin-top: 30px;
-        }
-        .section-title { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-        .form-control { background: #111; border: 1px solid #444; color: #fff; margin-bottom: 10px; }
-        .form-control:focus { background: #111; color: #fff; border-color: var(--point-color); box-shadow: none; }
-        
-        .btn-save {
-            background: var(--point-color); color: #000; font-weight: 700; width: 100%; border: none; padding: 10px; border-radius: 8px; margin-top: 10px;
-        }
-        .btn-save:hover { background: #ffca2c; }
+        /* 상태 디스플레이 */
+        .status-box { background: #111; padding: 15px; border-radius: 10px; border: 1px solid #333; margin-top: 20px; font-size: 0.9rem; color: #888; }
+        .status-value { color: #fff; font-weight: bold; margin-left: 5px; }
 
-        /* 모바일 대응 */
-        @media (max-width: 768px) {
-            .status-grid { grid-template-columns: 1fr; }
+        /* 포지션 창 */
+        .position-window {
+            background: #000; border: 1px solid var(--point-color); border-radius: 10px; 
+            padding: 15px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.85rem; color: #0f0;
         }
+
+        /* 봇 토글 스위치 */
+        .bot-switch-wrapper { display: flex; align-items: center; justify-content: space-between; background: #333; padding: 15px 20px; border-radius: 50px; margin-bottom: 20px; }
+        .form-check-input { width: 3em; height: 1.5em; cursor: pointer; }
+        .form-check-input:checked { background-color: #2ecc71; border-color: #2ecc71; }
+        
+        /* 로딩 오버레이 */
+        #overlay { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:none; align-items:center; justify-content:center; flex-direction: column;}
     </style>
 </head>
 <body>
+    <div id="overlay">
+        <div class="spinner-border text-warning" role="status"></div>
+        <div class="mt-3 text-white">데이터 처리 중...</div>
+    </div>
+
     <nav class="navbar navbar-expand fixed-top navbar-dark">
         <div class="container">
             <a class="navbar-brand fw-bold" href="/"><i class="bi bi-robot text-warning"></i> MANGO BOT</a>
-            <div class="ms-auto">
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span id="welcome-msg" class="text-white small d-none d-md-block"></span>
                 <button onclick="logout()" class="btn-logout">로그아웃</button>
             </div>
         </div>
     </nav>
 
-    <div class="container dashboard-container">
-        <div class="welcome-box">
-            <div>반갑습니다,</div>
-            <div class="user-name" id="display-name">Loading...</div>
-            <div class="expiry-date" id="display-date">멤버십 정보를 불러오는 중입니다.</div>
-        </div>
-
-        <div class="status-grid">
-            <div class="status-card">
-                <div class="card-label"><i class="bi bi-activity"></i> 봇 작동 상태</div>
-                <div class="card-value" id="bot-status">확인 중...</div>
-            </div>
-            <div class="status-card">
-                <div class="card-label"><i class="bi bi-wallet2"></i> 나의 누적 수익</div>
-                <div class="card-value text-warning" id="my-profit">₩0</div>
+    <div class="container" style="max-width: 800px;">
+        
+        <div class="bot-switch-wrapper">
+            <div class="fw-bold text-white fs-5"><i class="bi bi-power"></i> 봇 전원 스위치</div>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="botToggle" onchange="toggleBot()">
+                <label class="form-check-label text-white fw-bold ms-2" for="botToggle" id="botLabel">OFF</label>
             </div>
         </div>
 
-        <div class="api-section">
-            <div class="section-title">
-                <i class="bi bi-key-fill text-warning"></i> 바이낸스 API 연동
-                <span class="badge bg-secondary ms-2" id="api-status-badge">미연동</span>
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="section-card">
+                    <div class="section-title"><i class="bi bi-sliders"></i> 매매 환경 설정</div>
+                    
+                    <label class="form-label">거래소 선택</label>
+                    <select class="form-select" id="exchange-select">
+                        <option value="Binance">Binance (바이낸스)</option>
+                        <option value="OKX">OKX</option>
+                        <option value="Bybit">Bybit (바이비트)</option>
+                        <option value="Bitget">Bitget (비트겟)</option>
+                        <option value="BingX">BingX (빙엑스)</option>
+                    </select>
+
+                    <label class="form-label">API Key</label>
+                    <input type="text" class="form-control" id="api-key" placeholder="거래소에서 발급받은 Access Key">
+
+                    <label class="form-label">Secret Key</label>
+                    <input type="password" class="form-control" id="secret-key" placeholder="거래소에서 발급받은 Secret Key">
+
+                    <label class="form-label d-flex justify-content-between">
+                        <span>레버리지 설정</span>
+                        <span class="text-warning fw-bold" id="leverage-val">10x</span>
+                    </label>
+                    <input type="range" class="form-range" min="1" max="20" step="1" id="leverage-range" oninput="updateLevDisp(this.value)">
+
+                    <label class="form-label">진입 종목 (다중 선택)</label>
+                    <div class="btn-check-group">
+                        <input type="checkbox" class="btn-check symbol-chk" id="sym-btc" value="BTC">
+                        <label class="btn btn-outline-warning btn-sm rounded-pill" for="sym-btc">BTC</label>
+
+                        <input type="checkbox" class="btn-check symbol-chk" id="sym-eth" value="ETH">
+                        <label class="btn btn-outline-warning btn-sm rounded-pill" for="sym-eth">ETH</label>
+
+                        <input type="checkbox" class="btn-check symbol-chk" id="sym-xrp" value="XRP">
+                        <label class="btn btn-outline-warning btn-sm rounded-pill" for="sym-xrp">XRP</label>
+
+                        <input type="checkbox" class="btn-check symbol-chk" id="sym-sol" value="SOL">
+                        <label class="btn btn-outline-warning btn-sm rounded-pill" for="sym-sol">SOL</label>
+                    </div>
+
+                    <label class="form-label">1회 진입 시드 (USDT)</label>
+                    <input type="number" class="form-control" id="entry-seed" placeholder="예: 100">
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle"></i> 총 자산의 10% 이하 설정을 권장합니다.</div>
+
+                    <button class="btn btn-warning w-100 mt-4 fw-bold" onclick="saveSettings()">
+                        <i class="bi bi-save"></i> 설정 저장하기
+                    </button>
+                </div>
             </div>
-            <p class="small text-secondary mb-3">
-                자동매매를 위해 Binance Futures API Key가 필요합니다.<br>
-                입력하신 키는 암호화되어 서버에 안전하게 전송됩니다.
-            </p>
-            
-            <label class="small text-secondary">API Key</label>
-            <input type="text" class="form-control" placeholder="Binance API Key 입력">
-            
-            <label class="small text-secondary mt-2">Secret Key</label>
-            <input type="password" class="form-control" placeholder="Binance Secret Key 입력">
-            
-            <button class="btn-save" onclick="alert('지금은 데모 버전입니다.\n실제 연동 기능은 사장님이 파이썬 봇과 연결해야 합니다!')">
-                <i class="bi bi-check-circle"></i> API 키 저장 및 봇 시작
-            </button>
+
+            <div class="col-lg-5">
+                <div class="section-card">
+                    <div class="section-title"><i class="bi bi-window-stack"></i> 실시간 포지션 현황</div>
+                    <div class="position-window" id="position-display">
+                        데이터를 불러오는 중...<br>
+                        [대기중]
+                    </div>
+                </div>
+
+                <div class="section-card">
+                    <div class="section-title"><i class="bi bi-clipboard-data"></i> 현재 적용된 설정</div>
+                    <div class="status-box">
+                        <div class="mb-2">거래소: <span class="status-value" id="disp-exchange">-</span></div>
+                        <div class="mb-2">레버리지: <span class="status-value" id="disp-leverage">-</span></div>
+                        <div class="mb-2">종목: <span class="status-value" id="disp-symbols">-</span></div>
+                        <div class="mb-2">진입시드: <span class="status-value" id="disp-seed">-</span></div>
+                        <div class="mt-3 pt-2 border-top border-secondary">
+                            나의 누적 수익: <span class="text-warning fw-bold fs-5" id="disp-profit">₩0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 로그인 체크 (보안)
-        const userCode = sessionStorage.getItem("mango_user_code");
-        const userName = sessionStorage.getItem("mango_user_name");
+        // ▼▼▼ 여기에 사장님의 URL을 넣었습니다! ▼▼▼
+        const scriptUrl = 'https://script.google.com/macros/s/AKfycbzGOdzeCFy5iMye18107R_3Tbteq-5RJDFKKb9gH0nRg26fzyGUe0KeX-tKcka4PaQ4PQ/exec';
+        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
 
-        if (!userCode || !userName) {
+        const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
+        const gid = '830244407'; // members GID
+        const userCode = sessionStorage.getItem("mango_user_code");
+
+        // 로그인 체크
+        if (!userCode) {
             alert("로그인이 필요합니다.");
-            location.href = "/bot"; // 로그인 안 했으면 쫓아냄
+            location.href = "/bot";
         } else {
-            document.getElementById('display-name').innerText = userName + "님";
-            loadMyData(userCode);
+            document.getElementById('welcome-msg').innerText = sessionStorage.getItem("mango_user_name") + "님";
+            loadData(); // 데이터 불러오기
         }
 
-        // 구글 시트에서 내 정보(수익금, 상태 등) 가져오기
-        function loadMyData(myCode) {
-            const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
-            const gid = '830244407'; // members 시트
+        // [읽기] 구글 시트에서 설정값 가져오기
+        function loadData() {
             const timestamp = new Date().getTime();
             const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
 
@@ -140,43 +182,142 @@
                     let myRow = null;
 
                     for(let i=0; i<data.length; i++) {
-                        // A열(0)이 내 코드와 같은지 확인
-                        if(data[i][0] && data[i][0].toString().trim().toUpperCase() === myCode.toUpperCase()) {
+                        if(data[i][0] && data[i][0].toString().trim().toUpperCase() === userCode.toUpperCase()) {
                             myRow = data[i];
                             break;
                         }
                     }
 
                     if(myRow) {
-                        // C열(2): 만료일, D열(3): 상태, E열(4): 봇상태, F열(5): 수익금, G열(6): API연동여부
-                        document.getElementById('display-date').innerText = "멤버십 만료일: " + (myRow[2] || "무제한");
+                        // E(4):봇상태, F(5):수익, H(7):거래소, I(8):API, J(9):Secret, K(10):레버리지, L(11):종목, M(12):시드, N(13):포지션
                         
-                        // 봇 상태 표시
-                        const botStat = myRow[4] || "OFF";
-                        const botEl = document.getElementById('bot-status');
-                        botEl.innerText = botStat;
-                        if(botStat.toUpperCase() === "ON") {
-                            botEl.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.6em; color:#2ecc71; vertical-align:middle;"></i> 가동중 (ON)';
-                            botEl.classList.add('bot-on');
-                        } else {
-                            botEl.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.6em; color:#e74c3c; vertical-align:middle;"></i> 정지됨 (OFF)';
-                            botEl.classList.add('bot-off');
-                        }
+                        // 1. 봇 상태
+                        const botStat = (myRow[4] || "OFF").toUpperCase();
+                        const toggle = document.getElementById('botToggle');
+                        toggle.checked = (botStat === "ON");
+                        updateBotLabel(toggle.checked);
 
-                        // 수익금 표시
-                        const profit = myRow[5] || "0";
-                        document.getElementById('my-profit').innerText = "₩" + profit;
+                        // 2. 입력폼 채우기
+                        document.getElementById('exchange-select').value = myRow[7] || "Binance";
+                        document.getElementById('api-key').value = myRow[8] || "";
+                        document.getElementById('secret-key').value = myRow[9] || ""; 
+                        
+                        const lev = myRow[10] || 10;
+                        document.getElementById('leverage-range').value = lev;
+                        updateLevDisp(lev);
 
-                        // API 연동 뱃지
-                        const apiStat = myRow[6] || "미연동";
-                        const badge = document.getElementById('api-status-badge');
-                        badge.innerText = apiStat;
-                        if(apiStat.includes("연동")) {
-                            badge.className = "badge bg-success ms-2";
-                        }
+                        const symbols = myRow[11] || "";
+                        document.querySelectorAll('.symbol-chk').forEach(chk => {
+                            chk.checked = symbols.includes(chk.value);
+                        });
+
+                        document.getElementById('entry-seed').value = myRow[12] || "";
+
+                        // 3. 우측 현황판
+                        document.getElementById('disp-exchange').innerText = myRow[7] || "-";
+                        document.getElementById('disp-leverage').innerText = lev + "x";
+                        document.getElementById('disp-symbols').innerText = symbols || "-";
+                        document.getElementById('disp-seed').innerText = (myRow[12] || "0") + " USDT";
+                        document.getElementById('disp-profit').innerText = "₩" + (myRow[5] || "0");
+                        
+                        // 4. 포지션 창
+                        document.getElementById('position-display').innerText = myRow[13] || "현재 진입한 포지션이 없습니다.";
                     }
                 }
             });
+        }
+
+        // [쓰기] 설정 저장하기
+        function saveSettings() {
+            const exchange = document.getElementById('exchange-select').value;
+            const apiKey = document.getElementById('api-key').value;
+            const secretKey = document.getElementById('secret-key').value;
+            const leverage = document.getElementById('leverage-range').value;
+            const seed = document.getElementById('entry-seed').value;
+            
+            let selectedSyms = [];
+            document.querySelectorAll('.symbol-chk:checked').forEach(chk => {
+                selectedSyms.push(chk.value);
+            });
+            
+            if(!apiKey || !secretKey || !seed) {
+                alert("API 키, 시크릿 키, 시드 금액은 필수입니다.");
+                return;
+            }
+
+            if(selectedSyms.length === 0) {
+                alert("최소 1개 이상의 종목을 선택해주세요.");
+                return;
+            }
+
+            showOverlay(true);
+
+            const payload = {
+                type: 'SAVE_SETTINGS',
+                code: userCode,
+                exchange: exchange,
+                apiKey: apiKey,
+                secretKey: secretKey,
+                leverage: leverage,
+                symbols: selectedSyms.join(','),
+                seed: seed
+            };
+
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                setTimeout(() => {
+                    showOverlay(false);
+                    alert("설정이 안전하게 저장되었습니다!");
+                    loadData(); 
+                }, 1500); 
+            }).catch(err => {
+                showOverlay(false);
+                alert("저장 실패. 관리자에게 문의하세요.");
+            });
+        }
+
+        // [쓰기] 봇 ON/OFF 토글
+        function toggleBot() {
+            const toggle = document.getElementById('botToggle');
+            const status = toggle.checked ? "ON" : "OFF";
+            updateBotLabel(toggle.checked);
+
+            showOverlay(true);
+
+            const payload = {
+                type: 'TOGGLE_BOT',
+                code: userCode,
+                status: status
+            };
+
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                setTimeout(() => {
+                    showOverlay(false);
+                }, 1000);
+            });
+        }
+
+        function updateLevDisp(val) {
+            document.getElementById('leverage-val').innerText = val + "x";
+        }
+
+        function updateBotLabel(isOn) {
+            const label = document.getElementById('botLabel');
+            label.innerText = isOn ? "가동중 (ON)" : "정지 (OFF)";
+            label.style.color = isOn ? "#2ecc71" : "#e74c3c";
+        }
+
+        function showOverlay(show) {
+            document.getElementById('overlay').style.display = show ? 'flex' : 'none';
         }
 
         function logout() {
