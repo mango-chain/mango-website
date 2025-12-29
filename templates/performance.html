@@ -32,10 +32,24 @@
             box-shadow: 0 0 20px rgba(255, 193, 7, 0.1);
         }
 
-        .custom-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .custom-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #333; }
+        /* [중요] 테이블 레이아웃 고정 (열 너비 안 흔들리게) */
+        .custom-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            font-size: 0.85rem; 
+            table-layout: fixed; /* 강제 고정 */
+        }
         
-        /* 틀 고정 (Sticky Header) */
+        .custom-table td { 
+            padding: 12px 5px; 
+            text-align: center; 
+            border-bottom: 1px solid #333; 
+            white-space: nowrap; /* 글자 줄바꿈 방지 */
+            overflow: hidden; 
+            text-overflow: ellipsis; /* 내용 넘치면 ... 처리 */
+        }
+        
+        /* Sticky Header (배경색 및 위치) */
         .custom-table thead th {
             position: sticky;       
             top: 76px;              
@@ -49,17 +63,11 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
         }
 
-        .data-row { background-color: #1a1a1a; color: #bbb; } /* 기본 글자색을 살짝 어둡게 */
+        .data-row { background-color: #1a1a1a; color: #bbb; }
         .data-row:hover { background-color: #2a2a2a; }
         
         .summary-row { background-color: var(--point-color); color: #000 !important; font-weight: 800; border-bottom: 1px solid #000; }
         .summary-row td { color: #000 !important; border-right: 1px solid rgba(0,0,0,0.1); }
-
-        /* ▼▼▼ 요청하신 색상 스타일 ▼▼▼ */
-        .text-white { color: #ffffff !important; font-weight: bold; } /* 종목명 하얀색 */
-        .text-gray { color: #888888 !important; font-weight: 500; }   /* 포지션 회색 */
-        .text-up { color: #2ecc71 !important; font-weight: bold; }    /* 익절 초록색 */
-        .text-down { color: #e74c3c !important; font-weight: bold; }  /* 손절 빨간색 */
 
         #loading { text-align: center; padding: 50px; color: #666; }
 
@@ -102,16 +110,18 @@
     <section class="container pb-5">
         <div class="table-container">
             <table class="custom-table" id="trade-table">
+                <colgroup>
+                    <col style="width: 14%"> <col style="width: 10%"> <col style="width: 12%" class="hide-mobile"> <col style="width: 10%"> <col style="width: 12%"> <col style="width: 12%"> <col style="width: 14%" class="hide-mobile"> <col style="width: 16%"> </colgroup>
                 <thead>
                     <tr>
-                        <th style="width:12%">날짜</th>
-                        <th style="width:8%">종목</th>
-                        <th style="width:10%" class="hide-mobile">진입시간</th>
-                        <th style="width:8%">포지션</th>
-                        <th style="width:10%">손절</th>
-                        <th style="width:10%">익절</th>
-                        <th style="width:12%" class="hide-mobile">레버리지20X</th>
-                        <th style="width:15%">페이백 적용시</th>
+                        <th>날짜</th>
+                        <th>종목</th>
+                        <th class="hide-mobile">진입시간</th>
+                        <th>포지션</th>
+                        <th>손절</th>
+                        <th>익절</th>
+                        <th class="hide-mobile">레버리지20X</th>
+                        <th>페이백 적용시</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
@@ -160,7 +170,7 @@
                             continue;
                         }
 
-                        // 1. 통계 줄
+                        // 1. 통계 줄 (노란색)
                         const isSummary = col0.includes("통계") || col0.includes("비중");
                         
                         if (isSummary) {
@@ -177,35 +187,31 @@
                         }
                         // 2. 데이터 줄
                         else if (col1.length > 0) {
-                            const pos = (row[3] || "").toUpperCase();
-                            
-                            // 포지션 글자만 깔끔하게 (회색)
-                            // "LONG"이나 "SHORT"라는 글자만 남기거나 그대로 출력
-                            let posText = pos.replace('LONG', 'Long').replace('SHORT', 'Short');
+                            const pos = (row[3] || "").toUpperCase().replace('LONG', 'Long').replace('SHORT', 'Short');
                             
                             let payback = row[8] || "";
-                            // 페이백 수익률 색상 (마이너스면 빨강, 아니면 초록)
-                            let profitClass = payback.includes('-') ? 'text-down' : 'text-up';
+                            // 페이백 색상: 마이너스면 빨강(#e74c3c), 아니면 초록(#2ecc71)
+                            let profitColor = payback.includes('-') ? '#e74c3c' : '#2ecc71';
 
                             let html = `<tr class="data-row">`;
                             html += `<td>${row[0] || ''}</td>`;
                             
-                            // [종목명] 하얀색
-                            html += `<td class="text-white">${row[1] || ''}</td>`;
+                            // [종목명] 하얀색 강제 적용
+                            html += `<td style="color: #ffffff; font-weight: bold;">${row[1] || ''}</td>`;
                             
                             html += `<td class="hide-mobile text-secondary">${row[2] || ''}</td>`;
                             
-                            // [포지션] 회색
-                            html += `<td class="text-gray">${posText}</td>`;
+                            // [포지션] 회색 강제 적용
+                            html += `<td style="color: #888888; font-weight: 500;">${pos}</td>`;
                             
-                            // [손절] 빨간색
-                            html += `<td class="text-down">${row[4] || ''}</td>`;
+                            // [손절] 빨간색 강제 적용
+                            html += `<td style="color: #ff4d4d; font-weight: bold;">${row[4] || ''}</td>`;
                             
-                            // [익절] 초록색
-                            html += `<td class="text-up">${row[5] || ''}</td>`;
+                            // [익절] 초록색 강제 적용
+                            html += `<td style="color: #2ecc71; font-weight: bold;">${row[5] || ''}</td>`;
                             
                             html += `<td class="hide-mobile">${row[6] || ''}</td>`;
-                            html += `<td class="${profitClass}" style="font-size:1.1em;">${payback}</td>`;
+                            html += `<td style="color: ${profitColor}; font-weight: bold; font-size: 1.1em;">${payback}</td>`;
                             html += `</tr>`;
                             tbody.innerHTML += html;
                         }
