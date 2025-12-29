@@ -23,45 +23,25 @@
         .page-header { padding-top: 100px; text-align: center; margin-bottom: 30px; }
         .page-title { color: var(--point-color); font-weight: 800; font-size: 2rem; letter-spacing: -1px; }
 
-        /* ▼▼▼ [신규] 총 수익금 박스 스타일 ▼▼▼ */
+        /* 수익금 박스 */
         .profit-header-box {
-            background: #1f1f1f; /* 아주 어두운 회색 */
+            background: #1f1f1f;
             border: 2px solid var(--point-color);
             border-radius: 15px;
             padding: 25px 20px;
             text-align: center;
             margin-bottom: 20px;
             box-shadow: 0 0 25px rgba(255, 193, 7, 0.15);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+            max-width: 900px; margin-left: auto; margin-right: auto; /* 박스도 중앙 정렬 */
         }
-
-        /* PC 화면에서는 가로로 배치 */
         @media (min-width: 768px) {
-            .profit-header-box {
-                flex-direction: row;
-                gap: 30px;
-            }
+            .profit-header-box { flex-direction: row; gap: 30px; }
         }
+        .profit-desc { color: #ddd; font-size: 1.1rem; font-weight: 500; margin: 0; }
+        .profit-amount { color: #fff; font-size: 2rem; font-weight: 800; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); margin: 0; }
 
-        .profit-desc {
-            color: #ddd;
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin: 0;
-        }
-
-        .profit-amount {
-            color: #fff;
-            font-size: 2rem;
-            font-weight: 800;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-            margin: 0;
-        }
-
+        /* 테이블 컨테이너 */
         .table-container { 
             background: #111; 
             border: 2px solid var(--point-color); 
@@ -70,18 +50,21 @@
             overflow-x: auto; 
             max-height: 80vh; 
             position: relative;
+            /* [중요] 내용물 중앙 정렬을 위해 flex 사용 */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
         .custom-table { 
-            width: 100%; 
-            min-width: 900px; 
+            width: auto; /* [중요] 100% -> auto (내용만큼만 차지) */
             border-collapse: separate; 
             border-spacing: 0;
             font-size: 0.85rem; 
             table-layout: fixed; 
+            margin: 0 auto; /* 중앙 정렬 */
         }
         
-        /* 셀 내부 여백 최적화 */
         .custom-table th, .custom-table td { 
             padding: 10px 4px; 
             text-align: center; 
@@ -92,32 +75,17 @@
             text-overflow: ellipsis; 
         }
 
-        /* ▼▼▼ 2단 틀 고정 (Sticky Header) ▼▼▼ */
-        /* 메뉴바(56px) 바로 아래에 붙도록 top 위치 수정 */
-        
-        /* 1단: 노란색 통계 */
+        /* Sticky Header */
         .sticky-top-1 {
-            position: sticky; 
-            top: 0; /* 컨테이너 기준 */
-            background-color: var(--point-color) !important; 
-            color: #000 !important;
-            font-weight: 800; 
-            z-index: 1020; 
-            height: 45px; 
-            border-bottom: 1px solid #000;
+            position: sticky; top: 0; 
+            background-color: var(--point-color) !important; color: #000 !important;
+            font-weight: 800; z-index: 1020; height: 45px; border-bottom: 1px solid #000;
         }
-
-        /* 2단: 헤더 (노란줄 아래) */
         .sticky-top-2 {
-            position: sticky; 
-            top: 45px; /* 1단 높이만큼 */
-            background-color: #2c2c2c !important; 
-            color: #fff !important;
-            font-weight: bold; 
-            z-index: 1020; 
-            height: 45px;
-            border-bottom: 2px solid var(--point-color); 
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: sticky; top: 45px; 
+            background-color: #2c2c2c !important; color: #fff !important;
+            font-weight: bold; z-index: 1020; height: 45px;
+            border-bottom: 2px solid var(--point-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         .data-row { background-color: #1a1a1a; color: #bbb; }
@@ -129,7 +97,7 @@
         .text-up { color: #2ecc71 !important; font-weight: bold; }
         .text-down { color: #e74c3c !important; font-weight: bold; }
 
-        #loading { text-align: center; padding: 50px; color: #666; }
+        #loading { text-align: center; padding: 50px; color: #666; position: absolute; width: 100%; top: 50px;}
     </style>
 </head>
 <body>
@@ -170,16 +138,7 @@
         <div class="table-container">
             <table class="custom-table" id="trade-table">
                 <colgroup>
-                    <col style="width: 11%"> 
-                    <col style="width: 7%">  
-                    <col style="width: 9%">  
-                    <col style="width: 7%">  
-                    <col style="width: 10%"> 
-                    <col style="width: 10%"> 
-                    <col style="width: 13%"> 
-                    <col style="width: 13%"> 
-                    <col style="width: 20%"> 
-                </colgroup>
+                    <col style="width: 100px"> <col style="width: 60px">  <col style="width: 90px">  <col style="width: 70px">  <col style="width: 80px">  <col style="width: 80px">  <col style="width: 100px"> <col style="width: 100px"> <col style="width: 120px"> </colgroup>
                 
                 <thead id="table-head"></thead>
                 <tbody id="table-body"></tbody>
@@ -223,20 +182,16 @@
 
                     if(data.length < 5) return;
 
-                    // ▼▼▼ [신규] J1 셀 데이터 가져와서 상단 박스에 표시 ▼▼▼
-                    // J열은 인덱스 9입니다. (A=0 ... J=9)
                     if (data[0] && data[0][9]) {
-                        let rawAmount = data[0][9]; // J1 셀 값
-                        // 쉼표 추가 로직 (숫자가 아닌 문자 제거 후 포맷팅)
+                        let rawAmount = data[0][9]; 
                         let cleanNum = parseFloat(rawAmount.toString().replace(/[^0-9.-]/g, ''));
                         if (!isNaN(cleanNum)) {
                             profitDisplay.innerText = "₩" + cleanNum.toLocaleString();
                         } else {
-                            profitDisplay.innerText = rawAmount; // 숫자가 아니면 그대로 출력
+                            profitDisplay.innerText = rawAmount; 
                         }
                     }
 
-                    // --- 테이블 그리기 로직 (기존 유지) ---
                     let summaryRowIndex = -1;
                     let headerRowIndex = -1;
 
@@ -276,7 +231,6 @@
                     html2 += `</tr>`;
                     thead.innerHTML += html2;
 
-                    // 본문 데이터
                     for (let i = 0; i < data.length; i++) {
                         if (i === summaryRowIndex || i === headerRowIndex) continue;
                         
