@@ -25,22 +25,36 @@
         .feature-box:hover { border-color: var(--point-color); transform: translateY(-5px); }
         .feature-icon { font-size: 2.5rem; color: var(--point-color); margin-bottom: 20px; }
 
-        /* 가격표 스타일 */
+        /* 가격표 스타일 (단일 카드 강조) */
         .pricing-card {
-            background: var(--card-color); border: 1px solid #333; border-radius: 20px;
-            padding: 40px; text-align: center; transition: 0.3s; position: relative;
+            background: #1f1f10; /* 살짝 노란끼 도는 어두운 배경 */
+            border: 2px solid var(--point-color); 
+            border-radius: 20px;
+            padding: 50px; 
+            text-align: center; 
+            transition: 0.3s; 
+            position: relative;
+            max-width: 500px; /* 카드 최대 너비 제한 */
+            margin: 0 auto;   /* 중앙 정렬 */
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.2); /* 은은한 빛 효과 */
         }
-        .pricing-card:hover { border-color: var(--point-color); transform: translateY(-10px); }
-        .pricing-card.popular { border: 2px solid var(--point-color); background: #1f1f10; }
+        .pricing-card:hover { transform: translateY(-10px); box-shadow: 0 0 40px rgba(255, 193, 7, 0.4); }
+        
         .badge-popular {
             position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            background: var(--point-color); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold;
+            background: var(--point-color); color: #000; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 1rem;
         }
-        .price { font-size: 3rem; font-weight: bold; color: white; margin: 20px 0; }
-        .price span { font-size: 1rem; color: #888; font-weight: normal; }
-        .features-list { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
-        .features-list li { margin-bottom: 15px; color: #ccc; }
-        .features-list i { color: var(--point-color); margin-right: 10px; }
+        .price { font-size: 3.5rem; font-weight: bold; color: white; margin: 30px 0; }
+        .price span { font-size: 1.2rem; color: #aaa; font-weight: normal; }
+        .features-list { list-style: none; padding: 0; margin: 40px 0; text-align: left; display: inline-block; }
+        .features-list li { margin-bottom: 20px; color: #eee; font-size: 1.1rem; }
+        .features-list i { color: var(--point-color); margin-right: 15px; font-size: 1.2rem; }
+        
+        .btn-price {
+            background-color: var(--point-color); color: #000; font-weight: 800; font-size: 1.2rem;
+            padding: 15px 0; width: 100%; border-radius: 50px; transition: 0.3s;
+        }
+        .btn-price:hover { background-color: #ffca2c; transform: scale(1.02); }
     </style>
 </head>
 <body>
@@ -99,35 +113,28 @@
     <section class="container pb-5">
         <div class="text-center mb-5">
             <h2 class="fw-bold">멤버십 플랜</h2>
-            <p class="text-secondary">자신에게 맞는 플랜을 선택하세요.</p>
+            <p class="text-secondary">최고의 성능을 위한 단 하나의 프리미엄 플랜</p>
         </div>
         
-        <div class="row g-4 justify-content-center">
-            <div class="col-md-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
                 <div class="pricing-card">
-                    <h3>Basic</h3>
-                    <div class="price">무료 <span>/ 월</span></div>
+                    <span class="badge-popular">PREMIUM MEMBERSHIP</span>
+                    <h3>Pro Trading Bot</h3>
+                    <div class="price">165,000원 <span>/ 월</span></div>
+                    
                     <ul class="features-list">
-                        <li><i class="bi bi-check-circle-fill"></i> 비트코인(BTC) 단일 종목</li>
-                        <li><i class="bi bi-check-circle-fill"></i> 기본 15분봉 전략</li>
-                        <li><i class="bi bi-check-circle-fill"></i> 레버리지 최대 5배</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 전 종목(BTC, ETH, Altcoins) 지원</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI 기반 ATR 변동성 전략 탑재</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 레버리지 자유 설정 (최대 20배)</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 1:1 원격 설치 및 세팅 지원</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 24시간 실시간 카카오톡 알림</li>
                     </ul>
-                    <a href="/bot" class="btn btn-outline-light w-100 py-3 rounded-pill mt-3">시작하기</a>
-                </div>
-            </div>
-            
-            <div class="col-md-4">
-                <div class="pricing-card popular">
-                    <span class="badge-popular">추천 (BEST)</span>
-                    <h3>Pro</h3>
-                    <div class="price">$49 <span>/ 월</span></div>
-                    <ul class="features-list">
-                        <li><i class="bi bi-check-circle-fill"></i> 전 종목(BTC, ETH, XRP...)</li>
-                        <li><i class="bi bi-check-circle-fill"></i> AI 기반 ATR 변동성 전략</li>
-                        <li><i class="bi bi-check-circle-fill"></i> 레버리지 최대 20배</li>
-                        <li><i class="bi bi-check-circle-fill"></i> 1:1 원격 설치 지원</li>
-                    </ul>
-                    <a href="/bot" class="btn btn-warning w-100 py-3 rounded-pill mt-3 fw-bold">구독하기</a>
+
+                    <a href="https://www.latpeed.com/memberships/693f43833a65992a42c79d63" target="_blank" class="btn btn-price">
+                        멤버십 구독하기
+                    </a>
+                    <p class="mt-3 text-secondary small">* 결제 페이지로 이동합니다.</p>
                 </div>
             </div>
         </div>
