@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상품 설명 - Mango Chain</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
+        
+        .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; }
+        .nav-link { color: #ccc !important; margin: 0 10px; }
+        .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
+        .btn-main { background-color: var(--point-color); color: #000; font-weight: 700; border-radius: 50px; padding: 8px 25px; }
+
+        /* 섹션 스타일 */
+        .section-title { font-size: 2.5rem; font-weight: bold; margin-bottom: 20px; }
+        .section-desc { color: #aaa; font-size: 1.1rem; max-width: 700px; margin: 0 auto 60px; }
+        .feature-box { padding: 40px; background: var(--card-color); border-radius: 20px; border: 1px solid #333; height: 100%; transition: 0.3s; }
+        .feature-box:hover { border-color: var(--point-color); transform: translateY(-5px); }
+        .feature-icon { font-size: 2.5rem; color: var(--point-color); margin-bottom: 20px; }
+
+        /* 가격표 스타일 */
+        .pricing-card {
+            background: var(--card-color); border: 1px solid #333; border-radius: 20px;
+            padding: 40px; text-align: center; transition: 0.3s; position: relative;
+        }
+        .pricing-card:hover { border-color: var(--point-color); transform: translateY(-10px); }
+        .pricing-card.popular { border: 2px solid var(--point-color); background: #1f1f10; }
+        .badge-popular {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            background: var(--point-color); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold;
+        }
+        .price { font-size: 3rem; font-weight: bold; color: white; margin: 20px 0; }
+        .price span { font-size: 1rem; color: #888; font-weight: normal; }
+        .features-list { list-style: none; padding: 0; margin: 30px 0; text-align: left; }
+        .features-list li { margin-bottom: 15px; color: #ccc; }
+        .features-list i { color: var(--point-color); margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-lightning-charge-fill text-warning"></i> MANGO CHAIN</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">홈</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/pricing">상품설명</a></li>
+                    <li class="nav-item ms-3"><a class="btn btn-main" href="/bot">자동매매봇 입장</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="container" style="padding-top: 150px; padding-bottom: 80px;">
+        <div class="text-center">
+            <h1 class="section-title">감정이 없는 <span style="color:var(--point-color)">알고리즘</span></h1>
+            <p class="section-desc">망고체인 봇은 단순한 매매 프로그램이 아닙니다.<br>수년간의 백테스팅을 거친 검증된 로직만이 탑재되어 있습니다.</p>
+        </div>
+
+        <div class="row g-4 mt-4">
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <i class="bi bi-graph-up-arrow feature-icon"></i>
+                    <h3>변동성 돌파 전략 (VBO)</h3>
+                    <p class="text-secondary mt-3">가격이 일정 범위를 강하게 돌파할 때 추세가 형성된다는 원리를 이용합니다. 횡보장에서는 쉬고, 추세가 터질 때만 진입하여 수익을 극대화합니다.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <i class="bi bi-shield-lock-fill feature-icon"></i>
+                    <h3>3중 안전장치 (Safety Lock)</h3>
+                    <p class="text-secondary mt-3">1. 진입 전 변동성(ATR) 체크<br>2. 손실 시 즉각적인 스탑로스(Stop-loss)<br>3. 서버 오류 시 자동 포지션 정리</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <i class="bi bi-cpu-fill feature-icon"></i>
+                    <h3>실시간 AI 데이터 분석</h3>
+                    <p class="text-secondary mt-3">1초 단위로 거래소 데이터를 수집하여 RSI, MACD, ADX 지표를 실시간으로 계산합니다. 사람이 놓칠 수 있는 0.1초의 타이밍을 잡아냅니다.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="feature-box">
+                    <i class="bi bi-cloud-check-fill feature-icon"></i>
+                    <h3>클라우드 서버 구동</h3>
+                    <p class="text-secondary mt-3">내 컴퓨터를 꺼도 상관없습니다. AWS 클라우드 환경에서 365일 24시간 봇이 쉬지 않고 돌아갑니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container pb-5">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">멤버십 플랜</h2>
+            <p class="text-secondary">자신에게 맞는 플랜을 선택하세요.</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="pricing-card">
+                    <h3>Basic</h3>
+                    <div class="price">무료 <span>/ 월</span></div>
+                    <ul class="features-list">
+                        <li><i class="bi bi-check-circle-fill"></i> 비트코인(BTC) 단일 종목</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 기본 15분봉 전략</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 레버리지 최대 5배</li>
+                    </ul>
+                    <a href="/bot" class="btn btn-outline-light w-100 py-3 rounded-pill mt-3">시작하기</a>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="pricing-card popular">
+                    <span class="badge-popular">추천 (BEST)</span>
+                    <h3>Pro</h3>
+                    <div class="price">$49 <span>/ 월</span></div>
+                    <ul class="features-list">
+                        <li><i class="bi bi-check-circle-fill"></i> 전 종목(BTC, ETH, XRP...)</li>
+                        <li><i class="bi bi-check-circle-fill"></i> AI 기반 ATR 변동성 전략</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 레버리지 최대 20배</li>
+                        <li><i class="bi bi-check-circle-fill"></i> 1:1 원격 설치 지원</li>
+                    </ul>
+                    <a href="/bot" class="btn btn-warning w-100 py-3 rounded-pill mt-3 fw-bold">구독하기</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="border-top: 1px solid #333; padding: 50px 0; margin-top: 50px; color: #666; text-align: center;">
+        <div class="container">
+            <p class="small">이메일: support@mango-chain.com | 텔레그램: @Orange2Mango</p>
+            <p class="small text-muted">&copy; 2025 Mango Chain. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
