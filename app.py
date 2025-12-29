@@ -12,22 +12,15 @@ def home():
 def pricing():
     return render_template('pricing.html')
 
-# 3. 자동매매봇 페이지 (일단 로그인 화면으로 연결한다고 가정)
+# 3. 자동매매봇 입장 페이지 (추가됨)
 @app.route('/bot')
 def bot():
-    # 나중에 봇 대시보드를 여기에 연결할 예정입니다.
-    # 지금은 임시로 "준비중" 메시지나 로그인 페이지를 띄웁니다.
-    return "<h1 style='color:white; background:black; text-align:center; padding:50px;'>🤖 봇 대시보드 로그인 (준비중)</h1>"
+    return render_template('bot.html')
 
 # 4. 실시간 성과 페이지 (추가됨)
 @app.route('/performance')
 def performance():
     return render_template('performance.html')
-
-# 5. 자동매매봇 입장 페이지 (추가됨)
-@app.route('/bot')
-def bot():
-    return render_template('bot.html')
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
