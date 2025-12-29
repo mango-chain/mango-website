@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 성과 - Mango Chain</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
+        
+        .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; }
+        .nav-link { color: #ccc !important; margin: 0 10px; }
+        .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
+        .btn-main { background-color: var(--point-color); color: #000; font-weight: 700; border-radius: 50px; padding: 8px 25px; }
+
+        /* 성과 요약 카드 */
+        .stat-card { background: var(--card-color); border: 1px solid #333; border-radius: 15px; padding: 30px; text-align: center; }
+        .stat-title { color: #888; font-size: 0.9rem; margin-bottom: 10px; }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: white; }
+        .stat-value.profit { color: #ff5252; } /* 수익일 때 빨간색 */
+        .stat-value.loss { color: #448aff; }   /* 손실일 때 파란색 */
+
+        /* 테이블 스타일 */
+        .table-dark { background-color: var(--card-color); }
+        .table-dark th { color: var(--point-color); border-bottom: 1px solid #444; }
+        .table-dark td { color: #ccc; border-bottom: 1px solid #333; vertical-align: middle; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg fixed-top navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-lightning-charge-fill text-warning"></i> MANGO CHAIN</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="/">홈</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/pricing">상품설명</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/performance">실시간성과</a></li>
+                    <li class="nav-item ms-3"><a class="btn btn-main" href="/bot">자동매매봇 입장</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <section class="container" style="padding-top: 150px;">
+        <h2 class="fw-bold mb-4">📈 실시간 <span style="color:var(--point-color)">트레이딩 성과</span></h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-title">누적 수익률</div>
+                    <div class="stat-value profit">+128.5%</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-title">이번 달 수익금</div>
+                    <div class="stat-value text-white">$4,520</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-title">승률 (Win Rate)</div>
+                    <div class="stat-value" style="color:var(--point-color)">68.4%</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container py-5">
+        <div class="card bg-dark border-secondary">
+            <div class="card-body text-center py-5">
+                <h5 class="text-white mb-3">누적 자산 그래프</h5>
+                <div style="height: 300px; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #666;">
+                    <i class="bi bi-bar-chart-line" style="font-size: 3rem; margin-right: 10px;"></i>
+                    <span>TradingView 차트 로딩 중... (예시)</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="container pb-5">
+        <h4 class="fw-bold mb-3 text-white">최근 매매 기록 (Live Log)</h4>
+        <div class="table-responsive">
+            <table class="table table-dark table-hover text-center">
+                <thead>
+                    <tr>
+                        <th>시간</th>
+                        <th>코인</th>
+                        <th>포지션</th>
+                        <th>진입가</th>
+                        <th>청산가</th>
+                        <th>수익률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>2025-01-02 14:30</td>
+                        <td>BTC/USDT</td>
+                        <td><span class="badge bg-success">Long</span></td>
+                        <td>42,500</td>
+                        <td>43,100</td>
+                        <td class="text-danger fw-bold">+1.41%</td>
+                    </tr>
+                    <tr>
+                        <td>2025-01-02 09:15</td>
+                        <td>ETH/USDT</td>
+                        <td><span class="badge bg-danger">Short</span></td>
+                        <td>2,250</td>
+                        <td>2,210</td>
+                        <td class="text-danger fw-bold">+1.78%</td>
+                    </tr>
+                    <tr>
+                        <td>2025-01-01 23:40</td>
+                        <td>XRP/USDT</td>
+                        <td><span class="badge bg-success">Long</span></td>
+                        <td>0.6200</td>
+                        <td>0.6150</td>
+                        <td class="text-primary fw-bold">-0.81%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer style="border-top: 1px solid #333; padding: 50px 0; margin-top: 50px; color: #666; text-align: center;">
+        <div class="container">
+            <p class="small">&copy; 2025 Mango Chain. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

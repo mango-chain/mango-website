@@ -19,5 +19,10 @@ def bot():
     # 지금은 임시로 "준비중" 메시지나 로그인 페이지를 띄웁니다.
     return "<h1 style='color:white; background:black; text-align:center; padding:50px;'>🤖 봇 대시보드 로그인 (준비중)</h1>"
 
+# 4. 실시간 성과 페이지 (추가됨)
+@app.route('/performance')
+def performance():
+    return render_template('performance.html')
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
