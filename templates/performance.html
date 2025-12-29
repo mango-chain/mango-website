@@ -15,7 +15,7 @@
         :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
         body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
         
-        /* 네비게이션바 (z-index 최상위) */
+        /* 네비게이션바 */
         .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; z-index: 1050; height: 56px; }
         .nav-link { color: #ccc !important; margin: 0 10px; }
         .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
@@ -29,19 +29,18 @@
             border: 2px solid var(--point-color); 
             border-radius: 15px; 
             box-shadow: 0 0 20px rgba(255, 193, 7, 0.1);
-            /* 가로 스크롤 허용 (화면 작을 때 짤림 방지) */
             overflow-x: auto; 
-            max-height: 80vh; /* 세로 스크롤 생성 */
+            max-height: 80vh; 
             position: relative;
         }
 
         .custom-table { 
             width: 100%; 
-            min-width: 800px; /* 너무 좁아지지 않게 최소 너비 설정 */
-            border-collapse: separate; /* sticky 사용 시 collapse보다 안전 */
+            min-width: 900px; /* PC화면에서 짤리지 않게 최소 너비 확보 */
+            border-collapse: separate; 
             border-spacing: 0;
             font-size: 0.85rem; 
-            table-layout: fixed; /* [중요] 열 너비 강제 고정 */
+            table-layout: fixed; 
         }
         
         .custom-table th, .custom-table td { 
@@ -54,41 +53,26 @@
             text-overflow: ellipsis; 
         }
 
-        /* ▼▼▼ [핵심] 2단 틀 고정 스타일 ▼▼▼ */
-        
-        /* 1단: 노란색 통계 줄 */
+        /* 2단 고정 (Sticky Header) */
         .sticky-top-1 {
-            position: sticky;
-            top: 0; /* 컨테이너 기준 최상단 */
-            background-color: var(--point-color) !important;
-            color: #000 !important;
-            font-weight: 800;
-            z-index: 1020;
-            height: 45px;
-            border-bottom: 1px solid #000;
+            position: sticky; top: 0; 
+            background-color: var(--point-color) !important; color: #000 !important;
+            font-weight: 800; z-index: 1020; height: 45px; border-bottom: 1px solid #000;
         }
-
-        /* 2단: 헤더(날짜/종목) 줄 */
         .sticky-top-2 {
-            position: sticky;
-            top: 45px; /* 1단 높이만큼 띄움 */
-            background-color: #2c2c2c !important;
-            color: #fff !important;
-            font-weight: bold;
-            z-index: 1020;
-            height: 45px;
-            border-bottom: 2px solid var(--point-color);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            position: sticky; top: 45px; 
+            background-color: #2c2c2c !important; color: #fff !important;
+            font-weight: bold; z-index: 1020; height: 45px;
+            border-bottom: 2px solid var(--point-color); box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
 
         /* 데이터 스타일 */
         .data-row { background-color: #1a1a1a; color: #bbb; }
         .data-row:hover { background-color: #2a2a2a; }
         
-        /* 중간 통계 줄 (12/27 통계 등) */
+        /* 중간 통계 줄 */
         .sub-summary-row { background-color: #333 !important; color: #ffeb3b !important; font-weight: bold; }
 
-        /* 색상 유틸리티 */
         .text-white { color: #ffffff !important; font-weight: bold; }
         .text-gray { color: #888888 !important; font-weight: 500; }
         .text-up { color: #2ecc71 !important; font-weight: bold; }
@@ -125,7 +109,8 @@
         </div>
     </section>
 
-    <section class="container-fluid px-md-5 pb-5"> <div class="table-container">
+    <section class="container-fluid px-md-5 pb-5"> 
+        <div class="table-container">
             <table class="custom-table" id="trade-table">
                 <colgroup>
                     <col style="width: 12%"> <col style="width: 8%">  <col style="width: 10%"> <col style="width: 8%">  <col style="width: 10%"> <col style="width: 10%"> <col style="width: 12%"> <col style="width: 12%"> <col style="width: 18%"> </colgroup>
@@ -169,47 +154,41 @@
                     tbody.innerHTML = ''; 
                     loading.style.display = 'none';
 
-                    // 데이터가 너무 적으면 중단
                     if(data.length < 5) return;
 
-                    // 1. [상단 고정] 첫 번째 줄: 노란색 통계 (Row 1)
-                    // 구글시트에서 첫번째 줄이 보통 헤더거나 제목일 수 있는데, 
-                    // 보내주신 사진의 "수익률 통계" 줄을 찾아서 1단 고정시킵니다.
-                    
-                    // 시트 구조상 2번째 줄이 노란 통계, 3번째 줄이 헤더인 것으로 추정됩니다.
-                    // (CSV는 0부터 시작하므로 index 1과 2를 사용하거나, 내용을 보고 찾습니다)
-                    
+                    // [수정 포인트] 시트의 B열이 실제 날짜이므로 인덱스를 +1씩 다 수정함
+                    // A열(index 0)은 비어있으므로 무시
+                    // 날짜(B)=1, 종목(C)=2, 시간(D)=3, 포지션(E)=4, 손절(F)=5, 익절(G)=6, 레버리지(H)=7, 수수료(I)=8, 페이백(J)=9
+
+                    // 1. 헤더/통계줄 찾기 (B열 검사)
                     let summaryRowIndex = -1;
                     let headerRowIndex = -1;
 
-                    // "통계" 줄과 "날짜" 줄 찾기
-                    for(let i=0; i<10; i++) { // 위에서 10줄만 검색
+                    for(let i=0; i<10; i++) {
                         if(!data[i]) continue;
-                        let str = JSON.stringify(data[i]);
-                        if(str.includes("통계") && summaryRowIndex === -1) summaryRowIndex = i;
-                        if(str.includes("날짜") && str.includes("종목") && headerRowIndex === -1) headerRowIndex = i;
+                        // B열(index 1)에 '통계'나 '날짜' 글자가 있는지 확인
+                        let cellB = (data[i][1] || "").toString(); 
+                        if(cellB.includes("통계") && summaryRowIndex === -1) summaryRowIndex = i;
+                        if(cellB.includes("날짜") && headerRowIndex === -1) headerRowIndex = i;
                     }
-
-                    // 만약 못 찾으면 기본값 (Row 1, Row 2)
                     if(summaryRowIndex === -1) summaryRowIndex = 1; 
                     if(headerRowIndex === -1) headerRowIndex = 2;
 
-                    // --- 1단 고정: 노란색 통계 ---
+                    // --- 1단 고정: 노란색 통계 (인덱스 +1 적용) ---
                     const row1 = data[summaryRowIndex];
                     let html1 = `<tr>`;
-                    // 사진처럼 날짜+종목+진입시간 합쳐서 제목칸으로
+                    // 날짜~진입시간 합침 (B, C, D -> 1, 2, 3)
                     html1 += `<th colspan="3" class="sticky-top-1" style="text-align:center;">${row1[1] || '수익률 통계'}</th>`; 
-                    html1 += `<th class="sticky-top-1">${row1[3] || ''}</th>`; // 포지션 칸 비우거나 내용
-                    html1 += `<th class="sticky-top-1">${row1[4] || ''}</th>`; // 손절
-                    html1 += `<th class="sticky-top-1">${row1[5] || ''}</th>`; // 익절
-                    html1 += `<th class="sticky-top-1">${row1[6] || ''}</th>`; // 레버리지
-                    html1 += `<th class="sticky-top-1">${row1[7] || ''}</th>`; // 수수료
-                    html1 += `<th class="sticky-top-1">${row1[8] || ''}</th>`; // 페이백
+                    html1 += `<th class="sticky-top-1">${row1[4] || ''}</th>`; // 포지션(E) -> 4
+                    html1 += `<th class="sticky-top-1">${row1[5] || ''}</th>`; // 손절(F) -> 5
+                    html1 += `<th class="sticky-top-1">${row1[6] || ''}</th>`; // 익절(G) -> 6
+                    html1 += `<th class="sticky-top-1">${row1[7] || ''}</th>`; // 레버리지(H) -> 7
+                    html1 += `<th class="sticky-top-1">${row1[8] || ''}</th>`; // 수수료(I) -> 8
+                    html1 += `<th class="sticky-top-1">${row1[9] || ''}</th>`; // 페이백(J) -> 9
                     html1 += `</tr>`;
                     thead.innerHTML += html1;
 
-                    // --- 2단 고정: 날짜/종목 헤더 ---
-                    const row2 = data[headerRowIndex];
+                    // --- 2단 고정: 헤더 (고정 텍스트로 박음) ---
                     let html2 = `<tr>`;
                     html2 += `<th class="sticky-top-2">날짜</th>`;
                     html2 += `<th class="sticky-top-2">종목</th>`;
@@ -217,53 +196,52 @@
                     html2 += `<th class="sticky-top-2">포지션</th>`;
                     html2 += `<th class="sticky-top-2">손절</th>`;
                     html2 += `<th class="sticky-top-2">익절</th>`;
-                    html2 += `<th class="sticky-top-2">레버리지</th>`;
+                    html2 += `<th class="sticky-top-2">레버리지20X</th>`;
                     html2 += `<th class="sticky-top-2">수수료포함</th>`;
-                    html2 += `<th class="sticky-top-2">페이백</th>`;
+                    html2 += `<th class="sticky-top-2">페이백 적용시</th>`;
                     html2 += `</tr>`;
                     thead.innerHTML += html2;
 
-
-                    // --- 본문 데이터 (나머지) ---
+                    // --- 본문 데이터 ---
                     for (let i = 0; i < data.length; i++) {
-                        // 이미 쓴 줄들은 패스
                         if (i === summaryRowIndex || i === headerRowIndex) continue;
                         
                         const row = data[i];
-                        if (!row[0] && !row[1]) continue; // 빈 줄 삭제
+                        // B열(1)과 C열(2)이 둘 다 없으면 빈 줄 취급
+                        if (!row[1] && !row[2]) continue;
 
-                        const col0 = (row[0] || "").toString();
-                        const col1 = (row[1] || "").toString();
+                        const colB = (row[1] || "").toString(); // 날짜 또는 통계제목
 
-                        // 3. 중간 통계 줄 (예: 12/27 통계)
-                        if (col0.includes("통계") || col0.includes("비중")) {
+                        // 3. 중간 통계 줄 (B열에 '통계' 포함)
+                        if (colB.includes("통계") || colB.includes("비중")) {
                              let html = `<tr class="sub-summary-row">`;
-                             html += `<td colspan="3" style="text-align:left; padding-left:20px;">${row[0]}</td>`;
-                             html += `<td>${row[3] || ''}</td>`;
-                             html += `<td class="text-down">${row[4] || ''}</td>`;
-                             html += `<td class="text-up">${row[5] || ''}</td>`;
-                             html += `<td>${row[6] || ''}</td>`;
-                             html += `<td>${row[7] || ''}</td>`;
-                             html += `<td>${row[8] || ''}</td>`;
+                             html += `<td colspan="3" style="text-align:left; padding-left:20px;">${colB}</td>`;
+                             html += `<td>${row[4] || ''}</td>`; // E -> 4
+                             html += `<td class="text-down">${row[5] || ''}</td>`; // F -> 5
+                             html += `<td class="text-up">${row[6] || ''}</td>`; // G -> 6
+                             html += `<td>${row[7] || ''}</td>`; // H -> 7
+                             html += `<td>${row[8] || ''}</td>`; // I -> 8
+                             html += `<td>${row[9] || ''}</td>`; // J -> 9
                              html += `</tr>`;
                              tbody.innerHTML += html;
                         }
-                        // 4. 일반 데이터 줄
-                        else if (col1.length > 0 && !col1.includes("종목")) { // 헤더 반복 방지
-                            const pos = (row[3] || "").toUpperCase().replace('LONG', 'Long').replace('SHORT', 'Short');
-                            let payback = row[8] || "";
+                        // 4. 일반 데이터 줄 (B열에 날짜가 있고, C열(종목)이 헤더가 아닐 때)
+                        else if (colB.length > 0 && !colB.includes("날짜")) {
+                            // 인덱스 1씩 밀림: D->3, E->4 ...
+                            const pos = (row[4] || "").toUpperCase().replace('LONG', 'Long').replace('SHORT', 'Short');
+                            let payback = row[9] || "";
                             let profitColor = payback.includes('-') ? '#e74c3c' : '#2ecc71';
 
                             let html = `<tr class="data-row">`;
-                            html += `<td>${row[0] || ''}</td>`;
-                            html += `<td class="text-white">${row[1] || ''}</td>`;
-                            html += `<td class="text-gray">${row[2] || ''}</td>`;
-                            html += `<td class="text-gray">${pos}</td>`;
-                            html += `<td class="text-down">${row[4] || ''}</td>`;
-                            html += `<td class="text-up">${row[5] || ''}</td>`;
-                            html += `<td>${row[6] || ''}</td>`;
-                            html += `<td style="color:#aaa;">${row[7] || ''}</td>`;
-                            html += `<td style="color: ${profitColor}; font-weight: bold; font-size: 1.1em;">${payback}</td>`;
+                            html += `<td>${row[1] || ''}</td>`; // 날짜 (B) -> 1
+                            html += `<td class="text-white">${row[2] || ''}</td>`; // 종목 (C) -> 2
+                            html += `<td class="text-gray">${row[3] || ''}</td>`; // 시간 (D) -> 3
+                            html += `<td class="text-gray">${pos}</td>`; // 포지션 (E) -> 4
+                            html += `<td class="text-down">${row[5] || ''}</td>`; // 손절 (F) -> 5
+                            html += `<td class="text-up">${row[6] || ''}</td>`; // 익절 (G) -> 6
+                            html += `<td>${row[7] || ''}</td>`; // 레버리지 (H) -> 7
+                            html += `<td style="color:#aaa;">${row[8] || ''}</td>`; // 수수료 (I) -> 8
+                            html += `<td style="color: ${profitColor}; font-weight: bold; font-size: 1.1em;">${payback}</td>`; // 페이백 (J) -> 9
                             html += `</tr>`;
                             tbody.innerHTML += html;
                         }
@@ -271,7 +249,6 @@
                 },
                 error: function(err) {
                     console.error("Error:", err);
-                    loading.innerHTML = "<p class='text-danger'>데이터 로딩 실패</p>";
                 }
             });
         }
