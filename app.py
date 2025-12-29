@@ -24,5 +24,10 @@ def bot():
 def performance():
     return render_template('performance.html')
 
+# 5. 자동매매봇 입장 페이지 (추가됨)
+@app.route('/bot')
+def bot():
+    return render_template('bot.html')
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
