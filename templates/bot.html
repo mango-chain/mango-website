@@ -31,7 +31,7 @@
         .logo-area i { font-size: 3rem; color: var(--point-color); }
         
         .form-control {
-            background: #111; border: 1px solid #444; color: #fff; text-align: center; height: 50px; font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 10px;
+            background: #111; border: 1px solid #444; color: #fff; text-align: center; height: 50px; font-size: 1.1rem; letter-spacing: 1px; margin-bottom: 10px;
         }
         .form-control:focus { background: #111; color: #fff; border-color: var(--point-color); box-shadow: none; outline: none; }
         .form-control::placeholder { color: #555; font-size: 0.9rem; letter-spacing: 0; }
@@ -54,13 +54,16 @@
         <div class="logo-area">
             <i class="bi bi-robot"></i>
             <h3 class="fw-bold mt-3 text-white">MANGO BOT</h3>
-            <p class="text-secondary small">멤버십 인증코드 입력</p>
+            <p class="text-secondary small">멤버십 보안 인증</p>
         </div>
 
         <div>
+            <input type="text" id="user-name" class="form-control" placeholder="가입자 이름 (예: 홍길동)" onkeypress="if(event.keyCode==13) document.getElementById('auth-code').focus()">
+            
             <input type="text" id="auth-code" class="form-control" placeholder="인증코드 (예: MANGO-001)" onkeypress="if(event.keyCode==13) checkLogin()">
+            
             <button onclick="checkLogin()" class="btn-login">입장하기</button>
-            <p class="error-msg" id="error-msg">인증코드가 올바르지 않습니다.</p>
+            <p class="error-msg" id="error-msg">정보가 일치하지 않습니다.</p>
         </div>
         
         <div class="back-link">
@@ -69,18 +72,20 @@
     </div>
 
     <script>
-        // ▼▼▼ 사장님의 시트 정보가 적용되었습니다 ▼▼▼
         const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
-        const gid = '830244407'; // members 시트의 GID
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        const gid = '830244407'; // members 시트 GID
 
         function checkLogin() {
+            // 이름과 코드 둘 다 가져오기
+            const inputName = document.getElementById('user-name').value.trim();
             const inputCode = document.getElementById('auth-code').value.trim();
+            
             const errorMsg = document.getElementById('error-msg');
             const btn = document.querySelector('.btn-login');
 
-            if(!inputCode) {
-                alert("인증코드를 입력해주세요.");
+            // 둘 중 하나라도 비어있으면 경고
+            if(!inputName || !inputCode) {
+                alert("이름과 인증코드를 모두 입력해주세요.");
                 return;
             }
 
@@ -88,44 +93,43 @@
             btn.disabled = true;
             errorMsg.style.display = 'none';
 
-            // 캐시 방지를 위해 시간값 추가
             const timestamp = new Date().getTime();
             const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
 
             Papa.parse(csvUrl, {
                 download: true,
-                header: false, // 헤더 없이 순서대로 읽기 (A열=0, B열=1...)
+                header: false, 
                 complete: function(results) {
                     const data = results.data;
                     let foundUser = null;
 
-                    // 데이터 한 줄씩 검사
                     for(let i=0; i<data.length; i++) {
                         const row = data[i];
-                        // A열: 인증코드, B열: 이름
-                        const code = (row[0] || "").toString().trim();
+                        // 시트 순서: A(0)=인증코드, B(1)=이름, C(2)=만료일, D(3)=상태
+                        const sheetCode = (row[0] || "").toString().trim();
+                        const sheetName = (row[1] || "").toString().trim();
                         
-                        // 사용자가 입력한 코드와 일치하는지 확인 (대소문자 구분 없이)
-                        if(code && code.toUpperCase() === inputCode.toUpperCase()) {
+                        // [핵심] 이름과 코드가 *동시에* 맞아야 함
+                        if(sheetCode.toUpperCase() === inputCode.toUpperCase() && sheetName === inputName) {
                             foundUser = row;
                             break;
                         }
                     }
 
                     if (foundUser) {
-                        const userName = foundUser[1] || "회원"; // B열 이름
-                        const status = foundUser[3] || "사용중"; // D열 상태
+                        const status = foundUser[3] || "사용중";
                         
                         if(status.includes("정지")) {
-                            errorMsg.innerText = "기간이 만료되었거나 정지된 계정입니다.";
+                            errorMsg.innerText = "기간 만료 또는 정지된 계정입니다.";
                             errorMsg.style.display = 'block';
                         } else {
-                            alert(`${userName}님 환영합니다!`);
-                            // 로그인 성공 시 봇 대시보드로 이동 (일단 홈으로 보냄, 추후 변경)
+                            // 로그인 성공! (일단 홈으로 보냅니다)
+                            alert(`${inputName}님 환영합니다!`);
                             location.href = "/"; 
                         }
                     } else {
-                        errorMsg.innerText = "존재하지 않는 인증코드입니다.";
+                        // 보안을 위해 "이름이 틀렸다" "코드가 틀렸다" 구분하지 않고 뭉뚱그려 말함
+                        errorMsg.innerText = "이름 또는 인증코드가 올바르지 않습니다.";
                         errorMsg.style.display = 'block';
                     }
 
