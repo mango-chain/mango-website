@@ -8,8 +8,7 @@
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <style>
@@ -21,22 +20,49 @@
         .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
         .btn-main { background-color: var(--point-color); color: #000; font-weight: 700; border-radius: 50px; padding: 8px 25px; }
 
-        /* 성과 요약 카드 */
-        .stat-card { background: var(--card-color); border: 1px solid #333; border-radius: 15px; padding: 30px; text-align: center; }
-        .stat-title { color: #888; font-size: 0.9rem; margin-bottom: 10px; }
-        .stat-value { font-size: 2.5rem; font-weight: bold; color: white; }
-        
-        /* 한국 주식 스타일: 빨강(수익), 파랑(손실) */
-        .text-profit { color: #ff5252 !important; } 
-        .text-loss { color: #448aff !important; }
+        /* 타이틀 섹션 */
+        .page-header { padding-top: 150px; text-align: center; margin-bottom: 40px; }
+        .page-title { color: var(--point-color); font-weight: 800; font-size: 2rem; letter-spacing: -1px; }
+        .page-subtitle { color: #888; font-size: 0.9rem; margin-top: 10px; }
 
-        /* 테이블 스타일 */
-        .table-dark { background-color: var(--card-color); --bs-table-bg: var(--card-color); }
-        .table-dark th { color: var(--point-color); border-bottom: 1px solid #444; font-weight: 500; }
-        .table-dark td { color: #ccc; border-bottom: 1px solid #333; vertical-align: middle; height: 50px; }
+        /* 테이블 디자인 (망고 스타일) */
+        .table-container { 
+            background: #111; 
+            border: 2px solid var(--point-color); 
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.1);
+        }
+
+        .custom-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .custom-table th, .custom-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #333; }
         
+        /* 헤더 스타일 */
+        .table-header { background-color: #222; color: #aaa; font-weight: bold; font-size: 0.8rem; }
+        
+        /* 데이터 스타일 */
+        .data-row { background-color: #1a1a1a; color: #fff; }
+        .data-row:hover { background-color: #2a2a2a; }
+
+        /* 노란색 통계 줄 스타일 */
+        .summary-row { background-color: var(--point-color); color: #000 !important; font-weight: 800; border-bottom: 1px solid #000; }
+        .summary-row td { color: #000 !important; border-right: 1px solid rgba(0,0,0,0.1); }
+
+        /* 색상 유틸리티 */
+        .text-up { color: #2ecc71 !important; font-weight: bold; } /* 수익 (초록) */
+        .text-down { color: #e74c3c !important; font-weight: bold; } /* 손실 (빨강) */
+        .badge-long { background: #2ecc71; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
+        .badge-short { background: #e74c3c; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
+
         /* 로딩 애니메이션 */
         #loading { text-align: center; padding: 50px; color: #666; }
+        
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .custom-table { font-size: 0.7rem; }
+            .hide-mobile { display: none; } /* 모바일에서 덜 중요한 컬럼 숨기기 */
+            .custom-table th, .custom-table td { padding: 8px 2px; }
+        }
     </style>
 </head>
 <body>
@@ -55,164 +81,165 @@
         </div>
     </nav>
 
-    <section class="container" style="padding-top: 150px;">
-        <h2 class="fw-bold mb-4">📈 실시간 <span style="color:var(--point-color)">트레이딩 성과</span></h2>
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-title">총 누적 수익률</div>
-                    <div class="stat-value" id="total-profit">0%</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-title">총 거래 횟수</div>
-                    <div class="stat-value text-white" id="total-trades">0회</div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="stat-card">
-                    <div class="stat-title">승률 (Win Rate)</div>
-                    <div class="stat-value" style="color:var(--point-color)" id="win-rate">0%</div>
-                </div>
+    <section class="container page-header">
+        <div class="d-inline-block text-center mb-3">
+             <img src="{{ url_for('static', filename='favicon.png') }}" alt="Mango" style="width: 50px; margin-bottom: 10px;">
+            <div class="page-title">MANGO SIGNAL RECORD</div>
+            <div class="page-subtitle">[투명한 공개]가 곧 실력의 증명입니다.</div>
+            <div class="mt-3">
+                <span class="badge bg-dark border border-warning text-warning">
+                    <i class="bi bi-stars"></i> 30분마다 자동 업데이트 중
+                </span>
             </div>
         </div>
     </section>
 
-    <section class="container py-5 mb-5">
-        <h4 class="fw-bold mb-3 text-white">최근 매매 로그 (Live Log)</h4>
-        <div class="table-responsive">
-            <table class="table table-dark table-hover text-center" id="trade-table">
+    <section class="container pb-5">
+        <div class="table-container">
+            <table class="custom-table" id="trade-table">
                 <thead>
-                    <tr>
-                        <th>시간</th>
-                        <th>코인</th>
-                        <th>포지션</th>
-                        <th>진입가</th>
-                        <th>청산가</th>
-                        <th>수익률</th>
+                    <tr class="table-header">
+                        <th style="width:12%">날짜</th>
+                        <th style="width:8%">종목</th>
+                        <th style="width:10%" class="hide-mobile">진입시간</th>
+                        <th style="width:8%">포지션</th>
+                        <th style="width:10%">손절</th>
+                        <th style="width:10%">익절</th>
+                        <th style="width:12%" class="hide-mobile">레버리지20X</th>
+                        <th style="width:15%">페이백 적용시</th>
                     </tr>
                 </thead>
                 <tbody id="table-body">
                     </tbody>
             </table>
+
             <div id="loading">
                 <div class="spinner-border text-warning" role="status"></div>
-                <p class="mt-2">구글 시트에서 데이터 가져오는 중...</p>
+                <p class="mt-2 small">구글 시트 데이터 불러오는 중...</p>
             </div>
         </div>
+        
+        <p class="text-center mt-4 text-secondary small">
+            * 본 데이터는 바이낸스(Binance) 거래소 기준 실시간 매매 내역입니다.<br>
+            * 페이백 적용 수익률은 수수료 환급을 포함한 최종 수익률입니다.
+        </p>
     </section>
 
     <footer style="border-top: 1px solid #333; padding: 50px 0; margin-top: 50px; color: #666; text-align: center;">
         <div class="container">
-            <p class="small">&copy; 2025 Mango Chain. All rights reserved.</p>
+            <p class="small">이메일: support@mango-chain.com | 텔레그램: @Orange2Mango</p>
+            <p class="small text-muted">&copy; 2025 Mango Chain. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // ▼▼▼ 여기에 구글 시트 설정 정보를 넣습니다 ▼▼▼
         const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
-        const gid = '262148501'; 
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
+        const gid = '262148501';
 
-        // 데이터를 가져와서 화면에 그리는 함수
         function loadSheetData() {
-            // [중요] URL 뒤에 &t=현재시간 을 붙여서 브라우저가 매번 새 파일로 인식하게 만듭니다 (캐시 방지)
             const timestamp = new Date().getTime(); 
+            // header: false로 해서 우리가 직접 모든 줄을 검사합니다.
             const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
 
-            // 로딩 표시 켜기 (업데이트 중임을 알림)
             const loading = document.getElementById('loading');
             const tbody = document.getElementById('table-body');
             
-            // 처음 로딩이 아니면 투명하게 처리하거나 로딩바를 보여줄 수 있음
-            // loading.style.display = 'block'; 
-
             Papa.parse(csvUrl, {
                 download: true,
-                header: true,
+                header: false, // 헤더 없이 0, 1, 2 인덱스로 가져옵니다
                 complete: function(results) {
                     const data = results.data;
+                    tbody.innerHTML = ''; // 초기화
+
+                    // 데이터 한 줄씩 검사
+                    for (let i = 0; i < data.length; i++) {
+                        const row = data[i];
+                        
+                        // 빈 줄은 패스
+                        if (!row[0] && !row[1]) continue;
+
+                        // [1] 노란색 통계 줄인지 확인 (예: "12/29 통계")
+                        // 특징: 첫번째 칸에 날짜가 있거나 "통계"라는 단어가 포함됨
+                        // 시트 구조상 '통계'라는 글자가 있거나, 배경이 노란 줄을 찾습니다.
+                        // 여기서는 내용으로 판단합니다.
+                        const col0 = row[0] || "";
+                        const col1 = row[1] || "";
+                        
+                        // 통계 줄 판단 로직: "통계"라는 단어가 있거나, 특정 형식이면
+                        if (col0.includes("통계") || col0.includes("비중")) {
+                             // 통계 줄 그리기
+                             let html = `<tr class="summary-row">`;
+                             html += `<td colspan="2">${row[0]}</td>`; // 날짜/제목
+                             html += `<td class="hide-mobile">${row[2] || ''}</td>`; // 롱/숏 비율 등
+                             html += `<td>${row[3] || ''}</td>`; // 포지션 정보
+                             html += `<td>${row[4] || ''}</td>`; // 손절합계
+                             html += `<td>${row[5] || ''}</td>`; // 익절합계
+                             html += `<td class="hide-mobile">${row[6] || ''}</td>`; // 레버리지
+                             html += `<td>${row[8] || ''}</td>`; // 페이백 (중요)
+                             html += `</tr>`;
+                             tbody.innerHTML += html;
+                             continue; // 다음 줄로
+                        }
+
+                        // [2] 중간 헤더(날짜, 종목, 진입시간...)는 건너뛰기
+                        if (col1 === "종목" || col1 === "Symbol") {
+                            continue;
+                        }
+
+                        // [3] 실제 매매 데이터 줄 (종목란에 BTC, ETH, SOL, XRP 등이 있는 경우)
+                        const validCoins = ["BTC", "ETH", "SOL", "XRP", "DOGE", "ADA"];
+                        // 코인 이름이 포함되어 있거나, 날짜 형식이 있는 경우
+                        if (validCoins.some(coin => col1.includes(coin)) || row[0].includes("2025")) {
+                            // 데이터 매핑 (구글시트 열 번호 기준: A=0, B=1, ...)
+                            const date = row[0];
+                            const symbol = row[1];
+                            const time = row[2];
+                            const position = row[3]; // Long/Short
+                            const stopLoss = row[4];
+                            const takeProfit = row[5];
+                            const lev20 = row[6];
+                            const feeInc = row[7];
+                            const payback = row[8]; // 페이백 적용
+
+                            // 포지션 뱃지
+                            let posBadge = '';
+                            if (position) {
+                                if (position.toUpperCase().includes('LONG')) posBadge = '<span class="badge-long">Long</span>';
+                                else if (position.toUpperCase().includes('SHORT')) posBadge = '<span class="badge-short">Short</span>';
+                                else posBadge = position;
+                            }
+
+                            // 수익률 컬러링 (페이백 기준)
+                            let profitClass = '';
+                            if (payback && payback.includes('-')) profitClass = 'text-down'; // 마이너스면 빨강
+                            else if (payback) profitClass = 'text-up'; // 아니면 초록
+
+                            let html = `<tr class="data-row">`;
+                            html += `<td>${date}</td>`;
+                            html += `<td class="fw-bold">${symbol}</td>`;
+                            html += `<td class="hide-mobile text-secondary">${time}</td>`;
+                            html += `<td>${posBadge}</td>`;
+                            html += `<td class="text-down">${stopLoss || ''}</td>`;
+                            html += `<td class="text-up">${takeProfit || ''}</td>`;
+                            html += `<td class="hide-mobile">${lev20 || ''}</td>`;
+                            html += `<td class="${profitClass}" style="font-size:1.1em;">${payback || ''}</td>`;
+                            html += `</tr>`;
+                            tbody.innerHTML += html;
+                        }
+                    }
                     
-                    // 기존 테이블 내용 싹 비우기 (중복 방지)
-                    tbody.innerHTML = '';
-                    
-                    // 통계 계산용 변수 초기화
-                    let totalProfit = 0;
-                    let winCount = 0;
-                    let tradeCount = 0;
-
-                    // 최신순으로 정렬 (필요 시 주석 해제)
-                    // data.reverse(); 
-
-                    data.forEach(row => {
-                        // 빈 줄은 무시
-                        if (!row['코인'] && !row['Coin']) return;
-
-                        const cols = Object.values(row);
-                        if (cols.length < 6) return;
-
-                        const time = cols[0];
-                        const coin = cols[1];
-                        const side = cols[2];
-                        const entry = cols[3];
-                        const exit = cols[4];
-                        let roeStr = cols[5];
-
-                        let roe = parseFloat(roeStr.replace('%', ''));
-                        if (isNaN(roe)) roe = 0;
-
-                        tradeCount++;
-                        totalProfit += roe;
-                        if (roe > 0) winCount++;
-
-                        const colorClass = roe >= 0 ? 'text-profit' : 'text-loss';
-                        const roeSign = roe >= 0 ? '+' : '';
-
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${time}</td>
-                            <td class="fw-bold">${coin}</td>
-                            <td><span class="badge ${side.toUpperCase() === 'LONG' ? 'bg-danger' : 'bg-primary'}">${side}</span></td>
-                            <td>${entry}</td>
-                            <td>${exit}</td>
-                            <td class="${colorClass} fw-bold">${roeSign}${roe}%</td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-
-                    // 로딩 화면 끄기
                     loading.style.display = 'none';
-
-                    // 통계 업데이트
-                    document.getElementById('total-trades').innerText = tradeCount + "회";
-                    
-                    const profitElem = document.getElementById('total-profit');
-                    profitElem.innerText = (totalProfit > 0 ? '+' : '') + totalProfit.toFixed(2) + "%";
-                    profitElem.className = "stat-value " + (totalProfit >= 0 ? "text-profit" : "text-loss");
-
-                    const winRate = tradeCount > 0 ? (winCount / tradeCount * 100).toFixed(1) : 0;
-                    document.getElementById('win-rate').innerText = winRate + "%";
-                    
-                    console.log(`[${new Date().toLocaleTimeString()}] 데이터 업데이트 완료`);
                 },
                 error: function(err) {
-                    console.error("구글 시트 로딩 실패:", err);
+                    console.error("Error:", err);
                 }
             });
         }
 
-        // 1. 페이지 열리자마자 실행
         loadSheetData();
-
-        // 2. 30분마다 자동으로 실행 (30분 * 60초 * 1000밀리초)
-        setInterval(function() {
-            // 전체 페이지를 새로고침하면 더 깔끔합니다.
-            location.reload(); 
-        }, 30 * 60 * 1000);
-
+        setInterval(() => location.reload(), 30 * 60 * 1000);
     </script>
 </body>
 </html>
