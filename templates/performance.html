@@ -15,7 +15,7 @@
         :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
         body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
         
-        .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; }
+        .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; z-index: 1000; }
         .nav-link { color: #ccc !important; margin: 0 10px; }
         .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
         .btn-main { background-color: var(--point-color); color: #000; font-weight: 700; border-radius: 50px; padding: 8px 25px; }
@@ -33,28 +33,40 @@
         }
 
         .custom-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .custom-table th, .custom-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #333; }
-        .table-header { background-color: #222; color: #aaa; font-weight: bold; font-size: 0.8rem; }
-        .data-row { background-color: #1a1a1a; color: #fff; }
-        .data-row:hover { background-color: #2a2a2a; }
-        .summary-row { background-color: var(--point-color); color: #000 !important; font-weight: 800; border-bottom: 1px solid #000; }
+        .custom-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #333; }
         
-        .text-up { color: #2ecc71 !important; font-weight: bold; }
-        .text-down { color: #e74c3c !important; font-weight: bold; }
-        .badge-long { background: #2ecc71; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
-        .badge-short { background: #e74c3c; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
+        /* 틀 고정 (Sticky Header) */
+        .custom-table thead th {
+            position: sticky;       
+            top: 76px;              
+            background-color: #2c2c2c; 
+            color: #fff;            
+            padding: 15px 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            border-bottom: 2px solid var(--point-color); 
+            z-index: 10;            
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5); 
+        }
+
+        .data-row { background-color: #1a1a1a; color: #bbb; } /* 기본 글자색을 살짝 어둡게 */
+        .data-row:hover { background-color: #2a2a2a; }
+        
+        .summary-row { background-color: var(--point-color); color: #000 !important; font-weight: 800; border-bottom: 1px solid #000; }
+        .summary-row td { color: #000 !important; border-right: 1px solid rgba(0,0,0,0.1); }
+
+        /* ▼▼▼ 요청하신 색상 스타일 ▼▼▼ */
+        .text-white { color: #ffffff !important; font-weight: bold; } /* 종목명 하얀색 */
+        .text-gray { color: #888888 !important; font-weight: 500; }   /* 포지션 회색 */
+        .text-up { color: #2ecc71 !important; font-weight: bold; }    /* 익절 초록색 */
+        .text-down { color: #e74c3c !important; font-weight: bold; }  /* 손절 빨간색 */
 
         #loading { text-align: center; padding: 50px; color: #666; }
-
-        /* 진단용 박스 스타일 */
-        #debug-box {
-            background: #000; color: #0f0; padding: 20px; font-family: monospace; font-size: 12px;
-            border-top: 2px solid #333; margin-top: 50px; white-space: pre-wrap; word-break: break-all;
-        }
 
         @media (max-width: 768px) {
             .custom-table { font-size: 0.7rem; }
             .hide-mobile { display: none; }
+            .custom-table thead th { top: 60px; padding: 10px 2px; }
         }
     </style>
 </head>
@@ -91,7 +103,7 @@
         <div class="table-container">
             <table class="custom-table" id="trade-table">
                 <thead>
-                    <tr class="table-header">
+                    <tr>
                         <th style="width:12%">날짜</th>
                         <th style="width:8%">종목</th>
                         <th style="width:10%" class="hide-mobile">진입시간</th>
@@ -112,11 +124,6 @@
         </div>
     </section>
 
-    <div class="container" id="debug-box">
-        [데이터 진단 로그]<br>
-        상태: 대기중...
-    </div>
-
     <footer style="border-top: 1px solid #333; padding: 50px 0; margin-top: 50px; color: #666; text-align: center;">
         <div class="container">
             <p class="small">&copy; 2025 Mango Chain. All rights reserved.</p>
@@ -125,20 +132,12 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        // ▼ 시트 정보 확인
         const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
         const gid = '262148501';
-
-        function logDebug(msg) {
-            const box = document.getElementById('debug-box');
-            box.innerHTML += "<br>" + msg;
-        }
 
         function loadSheetData() {
             const timestamp = new Date().getTime(); 
             const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
-            
-            logDebug("1. 데이터 요청 시작: " + csvUrl);
 
             const loading = document.getElementById('loading');
             const tbody = document.getElementById('table-body');
@@ -148,18 +147,7 @@
                 header: false,
                 complete: function(results) {
                     const data = results.data;
-                    logDebug("2. 데이터 수신 성공! 총 행 개수: " + data.length + "줄");
-                    
-                    if (data.length > 0) {
-                        logDebug("3. 첫 번째 줄 데이터 예시: " + JSON.stringify(data[0]));
-                    } else {
-                        logDebug("ERROR: 받아온 데이터가 비어있습니다.");
-                        loading.innerHTML = "<p class='text-danger'>데이터가 비어있습니다. '웹에 게시'를 확인하세요.</p>";
-                        return;
-                    }
-
-                    tbody.innerHTML = '';
-                    let count = 0;
+                    tbody.innerHTML = ''; 
 
                     for (let i = 0; i < data.length; i++) {
                         const row = data[i];
@@ -168,11 +156,13 @@
                         const col0 = (row[0] || "").toString();
                         const col1 = (row[1] || "").toString();
 
-                        // [조건 완화] 1. 통계 줄 2. 날짜가 포함된 데이터 줄 3. 코인 이름이 있는 줄
-                        const isSummary = col0.includes("통계") || col0.includes("비중");
-                        const isHeader = col1 === "종목" || col1 === "Symbol";
-                        const isData = col1.length > 0 && !isHeader; // 종목 칸에 뭐가 있으면 일단 출력 시도
+                        if (col1 === "종목" || col1 === "Symbol" || col0 === "날짜") {
+                            continue;
+                        }
 
+                        // 1. 통계 줄
+                        const isSummary = col0.includes("통계") || col0.includes("비중");
+                        
                         if (isSummary) {
                              let html = `<tr class="summary-row">`;
                              html += `<td colspan="2">${row[0] || ''}</td>`;
@@ -184,40 +174,47 @@
                              html += `<td>${row[8] || ''}</td>`;
                              html += `</tr>`;
                              tbody.innerHTML += html;
-                             count++;
                         }
-                        else if (isData) {
-                            // 데이터 줄 그리기
+                        // 2. 데이터 줄
+                        else if (col1.length > 0) {
                             const pos = (row[3] || "").toUpperCase();
-                            let posBadge = pos;
-                            if (pos.includes('LONG')) posBadge = '<span class="badge-long">Long</span>';
-                            else if (pos.includes('SHORT')) posBadge = '<span class="badge-short">Short</span>';
-
+                            
+                            // 포지션 글자만 깔끔하게 (회색)
+                            // "LONG"이나 "SHORT"라는 글자만 남기거나 그대로 출력
+                            let posText = pos.replace('LONG', 'Long').replace('SHORT', 'Short');
+                            
                             let payback = row[8] || "";
+                            // 페이백 수익률 색상 (마이너스면 빨강, 아니면 초록)
                             let profitClass = payback.includes('-') ? 'text-down' : 'text-up';
 
                             let html = `<tr class="data-row">`;
                             html += `<td>${row[0] || ''}</td>`;
-                            html += `<td class="fw-bold">${row[1] || ''}</td>`;
+                            
+                            // [종목명] 하얀색
+                            html += `<td class="text-white">${row[1] || ''}</td>`;
+                            
                             html += `<td class="hide-mobile text-secondary">${row[2] || ''}</td>`;
-                            html += `<td>${posBadge}</td>`;
+                            
+                            // [포지션] 회색
+                            html += `<td class="text-gray">${posText}</td>`;
+                            
+                            // [손절] 빨간색
                             html += `<td class="text-down">${row[4] || ''}</td>`;
+                            
+                            // [익절] 초록색
                             html += `<td class="text-up">${row[5] || ''}</td>`;
+                            
                             html += `<td class="hide-mobile">${row[6] || ''}</td>`;
                             html += `<td class="${profitClass}" style="font-size:1.1em;">${payback}</td>`;
                             html += `</tr>`;
                             tbody.innerHTML += html;
-                            count++;
                         }
                     }
-                    
-                    logDebug("4. 화면 표시 완료: 총 " + count + "개 행을 그렸습니다.");
                     loading.style.display = 'none';
                 },
                 error: function(err) {
                     console.error("Error:", err);
-                    logDebug("ERROR: 데이터 다운로드 실패. 권한 문제일 수 있습니다.");
-                    loading.innerHTML = "<p class='text-danger'>구글 시트 연결 실패.<br>진단 로그를 확인해주세요.</p>";
+                    loading.innerHTML = "<p class='text-danger'>데이터 로딩 실패</p>";
                 }
             });
         }
