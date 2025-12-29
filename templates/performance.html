@@ -20,12 +20,10 @@
         .nav-link.active, .nav-link:hover { color: var(--point-color) !important; }
         .btn-main { background-color: var(--point-color); color: #000; font-weight: 700; border-radius: 50px; padding: 8px 25px; }
 
-        /* 타이틀 섹션 */
         .page-header { padding-top: 150px; text-align: center; margin-bottom: 40px; }
         .page-title { color: var(--point-color); font-weight: 800; font-size: 2rem; letter-spacing: -1px; }
         .page-subtitle { color: #888; font-size: 0.9rem; margin-top: 10px; }
 
-        /* 테이블 디자인 (망고 스타일) */
         .table-container { 
             background: #111; 
             border: 2px solid var(--point-color); 
@@ -36,32 +34,27 @@
 
         .custom-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .custom-table th, .custom-table td { padding: 12px 5px; text-align: center; border-bottom: 1px solid #333; }
-        
-        /* 헤더 스타일 */
         .table-header { background-color: #222; color: #aaa; font-weight: bold; font-size: 0.8rem; }
-        
-        /* 데이터 스타일 */
         .data-row { background-color: #1a1a1a; color: #fff; }
         .data-row:hover { background-color: #2a2a2a; }
-
-        /* 노란색 통계 줄 스타일 */
         .summary-row { background-color: var(--point-color); color: #000 !important; font-weight: 800; border-bottom: 1px solid #000; }
-        .summary-row td { color: #000 !important; border-right: 1px solid rgba(0,0,0,0.1); }
-
-        /* 색상 유틸리티 */
-        .text-up { color: #2ecc71 !important; font-weight: bold; } /* 수익 (초록) */
-        .text-down { color: #e74c3c !important; font-weight: bold; } /* 손실 (빨강) */
+        
+        .text-up { color: #2ecc71 !important; font-weight: bold; }
+        .text-down { color: #e74c3c !important; font-weight: bold; }
         .badge-long { background: #2ecc71; color: #000; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
         .badge-short { background: #e74c3c; color: #fff; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;}
 
-        /* 로딩 애니메이션 */
         #loading { text-align: center; padding: 50px; color: #666; }
-        
-        /* 모바일 대응 */
+
+        /* 진단용 박스 스타일 */
+        #debug-box {
+            background: #000; color: #0f0; padding: 20px; font-family: monospace; font-size: 12px;
+            border-top: 2px solid #333; margin-top: 50px; white-space: pre-wrap; word-break: break-all;
+        }
+
         @media (max-width: 768px) {
             .custom-table { font-size: 0.7rem; }
-            .hide-mobile { display: none; } /* 모바일에서 덜 중요한 컬럼 숨기기 */
-            .custom-table th, .custom-table td { padding: 8px 2px; }
+            .hide-mobile { display: none; }
         }
     </style>
 </head>
@@ -83,7 +76,7 @@
 
     <section class="container page-header">
         <div class="d-inline-block text-center mb-3">
-             <img src="{{ url_for('static', filename='favicon.png') }}" alt="Mango" style="width: 50px; margin-bottom: 10px;">
+            <img src="{{ url_for('static', filename='favicon.png') }}" alt="Mango" style="width: 50px; margin-bottom: 10px;">
             <div class="page-title">MANGO SIGNAL RECORD</div>
             <div class="page-subtitle">[투명한 공개]가 곧 실력의 증명입니다.</div>
             <div class="mt-3">
@@ -110,130 +103,121 @@
                     </tr>
                 </thead>
                 <tbody id="table-body">
-                    </tbody>
+                </tbody>
             </table>
-
             <div id="loading">
                 <div class="spinner-border text-warning" role="status"></div>
                 <p class="mt-2 small">구글 시트 데이터 불러오는 중...</p>
             </div>
         </div>
-        
-        <p class="text-center mt-4 text-secondary small">
-            * 본 데이터는 바이낸스(Binance) 거래소 기준 실시간 매매 내역입니다.<br>
-            * 페이백 적용 수익률은 수수료 환급을 포함한 최종 수익률입니다.
-        </p>
     </section>
+
+    <div class="container" id="debug-box">
+        [데이터 진단 로그]<br>
+        상태: 대기중...
+    </div>
 
     <footer style="border-top: 1px solid #333; padding: 50px 0; margin-top: 50px; color: #666; text-align: center;">
         <div class="container">
-            <p class="small">이메일: support@mango-chain.com | 텔레그램: @Orange2Mango</p>
-            <p class="small text-muted">&copy; 2025 Mango Chain. All rights reserved.</p>
+            <p class="small">&copy; 2025 Mango Chain. All rights reserved.</p>
         </div>
     </footer>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // ▼ 시트 정보 확인
         const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
         const gid = '262148501';
 
+        function logDebug(msg) {
+            const box = document.getElementById('debug-box');
+            box.innerHTML += "<br>" + msg;
+        }
+
         function loadSheetData() {
             const timestamp = new Date().getTime(); 
-            // header: false로 해서 우리가 직접 모든 줄을 검사합니다.
             const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
+            
+            logDebug("1. 데이터 요청 시작: " + csvUrl);
 
             const loading = document.getElementById('loading');
             const tbody = document.getElementById('table-body');
             
             Papa.parse(csvUrl, {
                 download: true,
-                header: false, // 헤더 없이 0, 1, 2 인덱스로 가져옵니다
+                header: false,
                 complete: function(results) {
                     const data = results.data;
-                    tbody.innerHTML = ''; // 초기화
+                    logDebug("2. 데이터 수신 성공! 총 행 개수: " + data.length + "줄");
+                    
+                    if (data.length > 0) {
+                        logDebug("3. 첫 번째 줄 데이터 예시: " + JSON.stringify(data[0]));
+                    } else {
+                        logDebug("ERROR: 받아온 데이터가 비어있습니다.");
+                        loading.innerHTML = "<p class='text-danger'>데이터가 비어있습니다. '웹에 게시'를 확인하세요.</p>";
+                        return;
+                    }
 
-                    // 데이터 한 줄씩 검사
+                    tbody.innerHTML = '';
+                    let count = 0;
+
                     for (let i = 0; i < data.length; i++) {
                         const row = data[i];
-                        
-                        // 빈 줄은 패스
                         if (!row[0] && !row[1]) continue;
 
-                        // [1] 노란색 통계 줄인지 확인 (예: "12/29 통계")
-                        // 특징: 첫번째 칸에 날짜가 있거나 "통계"라는 단어가 포함됨
-                        // 시트 구조상 '통계'라는 글자가 있거나, 배경이 노란 줄을 찾습니다.
-                        // 여기서는 내용으로 판단합니다.
-                        const col0 = row[0] || "";
-                        const col1 = row[1] || "";
-                        
-                        // 통계 줄 판단 로직: "통계"라는 단어가 있거나, 특정 형식이면
-                        if (col0.includes("통계") || col0.includes("비중")) {
-                             // 통계 줄 그리기
+                        const col0 = (row[0] || "").toString();
+                        const col1 = (row[1] || "").toString();
+
+                        // [조건 완화] 1. 통계 줄 2. 날짜가 포함된 데이터 줄 3. 코인 이름이 있는 줄
+                        const isSummary = col0.includes("통계") || col0.includes("비중");
+                        const isHeader = col1 === "종목" || col1 === "Symbol";
+                        const isData = col1.length > 0 && !isHeader; // 종목 칸에 뭐가 있으면 일단 출력 시도
+
+                        if (isSummary) {
                              let html = `<tr class="summary-row">`;
-                             html += `<td colspan="2">${row[0]}</td>`; // 날짜/제목
-                             html += `<td class="hide-mobile">${row[2] || ''}</td>`; // 롱/숏 비율 등
-                             html += `<td>${row[3] || ''}</td>`; // 포지션 정보
-                             html += `<td>${row[4] || ''}</td>`; // 손절합계
-                             html += `<td>${row[5] || ''}</td>`; // 익절합계
-                             html += `<td class="hide-mobile">${row[6] || ''}</td>`; // 레버리지
-                             html += `<td>${row[8] || ''}</td>`; // 페이백 (중요)
+                             html += `<td colspan="2">${row[0] || ''}</td>`;
+                             html += `<td class="hide-mobile">${row[2] || ''}</td>`;
+                             html += `<td>${row[3] || ''}</td>`;
+                             html += `<td>${row[4] || ''}</td>`;
+                             html += `<td>${row[5] || ''}</td>`;
+                             html += `<td class="hide-mobile">${row[6] || ''}</td>`;
+                             html += `<td>${row[8] || ''}</td>`;
                              html += `</tr>`;
                              tbody.innerHTML += html;
-                             continue; // 다음 줄로
+                             count++;
                         }
+                        else if (isData) {
+                            // 데이터 줄 그리기
+                            const pos = (row[3] || "").toUpperCase();
+                            let posBadge = pos;
+                            if (pos.includes('LONG')) posBadge = '<span class="badge-long">Long</span>';
+                            else if (pos.includes('SHORT')) posBadge = '<span class="badge-short">Short</span>';
 
-                        // [2] 중간 헤더(날짜, 종목, 진입시간...)는 건너뛰기
-                        if (col1 === "종목" || col1 === "Symbol") {
-                            continue;
-                        }
-
-                        // [3] 실제 매매 데이터 줄 (종목란에 BTC, ETH, SOL, XRP 등이 있는 경우)
-                        const validCoins = ["BTC", "ETH", "SOL", "XRP", "DOGE", "ADA"];
-                        // 코인 이름이 포함되어 있거나, 날짜 형식이 있는 경우
-                        if (validCoins.some(coin => col1.includes(coin)) || row[0].includes("2025")) {
-                            // 데이터 매핑 (구글시트 열 번호 기준: A=0, B=1, ...)
-                            const date = row[0];
-                            const symbol = row[1];
-                            const time = row[2];
-                            const position = row[3]; // Long/Short
-                            const stopLoss = row[4];
-                            const takeProfit = row[5];
-                            const lev20 = row[6];
-                            const feeInc = row[7];
-                            const payback = row[8]; // 페이백 적용
-
-                            // 포지션 뱃지
-                            let posBadge = '';
-                            if (position) {
-                                if (position.toUpperCase().includes('LONG')) posBadge = '<span class="badge-long">Long</span>';
-                                else if (position.toUpperCase().includes('SHORT')) posBadge = '<span class="badge-short">Short</span>';
-                                else posBadge = position;
-                            }
-
-                            // 수익률 컬러링 (페이백 기준)
-                            let profitClass = '';
-                            if (payback && payback.includes('-')) profitClass = 'text-down'; // 마이너스면 빨강
-                            else if (payback) profitClass = 'text-up'; // 아니면 초록
+                            let payback = row[8] || "";
+                            let profitClass = payback.includes('-') ? 'text-down' : 'text-up';
 
                             let html = `<tr class="data-row">`;
-                            html += `<td>${date}</td>`;
-                            html += `<td class="fw-bold">${symbol}</td>`;
-                            html += `<td class="hide-mobile text-secondary">${time}</td>`;
+                            html += `<td>${row[0] || ''}</td>`;
+                            html += `<td class="fw-bold">${row[1] || ''}</td>`;
+                            html += `<td class="hide-mobile text-secondary">${row[2] || ''}</td>`;
                             html += `<td>${posBadge}</td>`;
-                            html += `<td class="text-down">${stopLoss || ''}</td>`;
-                            html += `<td class="text-up">${takeProfit || ''}</td>`;
-                            html += `<td class="hide-mobile">${lev20 || ''}</td>`;
-                            html += `<td class="${profitClass}" style="font-size:1.1em;">${payback || ''}</td>`;
+                            html += `<td class="text-down">${row[4] || ''}</td>`;
+                            html += `<td class="text-up">${row[5] || ''}</td>`;
+                            html += `<td class="hide-mobile">${row[6] || ''}</td>`;
+                            html += `<td class="${profitClass}" style="font-size:1.1em;">${payback}</td>`;
                             html += `</tr>`;
                             tbody.innerHTML += html;
+                            count++;
                         }
                     }
                     
+                    logDebug("4. 화면 표시 완료: 총 " + count + "개 행을 그렸습니다.");
                     loading.style.display = 'none';
                 },
                 error: function(err) {
                     console.error("Error:", err);
+                    logDebug("ERROR: 데이터 다운로드 실패. 권한 문제일 수 있습니다.");
+                    loading.innerHTML = "<p class='text-danger'>구글 시트 연결 실패.<br>진단 로그를 확인해주세요.</p>";
                 }
             });
         }
