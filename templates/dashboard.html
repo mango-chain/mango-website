@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이 대시보드 - Mango Chain</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.png') }}">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;500;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+
+    <style>
+        :root { --bg-color: #111111; --card-color: #1a1a1a; --point-color: #FFC107; --text-color: #ffffff; }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: 'Pretendard', sans-serif; }
+
+        /* 네비게이션바 */
+        .navbar { background: rgba(17, 17, 17, 0.95); border-bottom: 1px solid #333; }
+        .nav-link { color: #ccc !important; }
+        .btn-logout { border: 1px solid #444; color: #fff; border-radius: 20px; padding: 5px 15px; font-size: 0.8rem; }
+        .btn-logout:hover { background: #333; color: #fff; }
+
+        .dashboard-container { max-width: 800px; margin: 100px auto 50px auto; padding: 20px; }
+        
+        /* 웰컴 섹션 */
+        .welcome-box { text-align: left; margin-bottom: 30px; }
+        .user-name { color: var(--point-color); font-weight: 800; font-size: 2rem; }
+        .expiry-date { color: #666; font-size: 0.9rem; margin-top: 5px; }
+
+        /* 상태 카드 그리드 */
+        .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
+        
+        .status-card {
+            background: #1f1f1f; border: 1px solid #333; border-radius: 15px; padding: 20px;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .card-label { color: #888; font-size: 0.85rem; margin-bottom: 5px; }
+        .card-value { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        
+        /* 봇 상태 ON/OFF 디자인 */
+        .bot-on { color: #2ecc71; text-shadow: 0 0 10px rgba(46, 204, 113, 0.3); }
+        .bot-off { color: #e74c3c; }
+
+        /* API 키 입력 섹션 */
+        .api-section {
+            background: #1f1f1f; border: 1px solid var(--point-color); border-radius: 15px; padding: 25px;
+            margin-top: 30px;
+        }
+        .section-title { font-weight: bold; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .form-control { background: #111; border: 1px solid #444; color: #fff; margin-bottom: 10px; }
+        .form-control:focus { background: #111; color: #fff; border-color: var(--point-color); box-shadow: none; }
+        
+        .btn-save {
+            background: var(--point-color); color: #000; font-weight: 700; width: 100%; border: none; padding: 10px; border-radius: 8px; margin-top: 10px;
+        }
+        .btn-save:hover { background: #ffca2c; }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .status-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand fixed-top navbar-dark">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="/"><i class="bi bi-robot text-warning"></i> MANGO BOT</a>
+            <div class="ms-auto">
+                <button onclick="logout()" class="btn-logout">로그아웃</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container dashboard-container">
+        <div class="welcome-box">
+            <div>반갑습니다,</div>
+            <div class="user-name" id="display-name">Loading...</div>
+            <div class="expiry-date" id="display-date">멤버십 정보를 불러오는 중입니다.</div>
+        </div>
+
+        <div class="status-grid">
+            <div class="status-card">
+                <div class="card-label"><i class="bi bi-activity"></i> 봇 작동 상태</div>
+                <div class="card-value" id="bot-status">확인 중...</div>
+            </div>
+            <div class="status-card">
+                <div class="card-label"><i class="bi bi-wallet2"></i> 나의 누적 수익</div>
+                <div class="card-value text-warning" id="my-profit">₩0</div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <div class="section-title">
+                <i class="bi bi-key-fill text-warning"></i> 바이낸스 API 연동
+                <span class="badge bg-secondary ms-2" id="api-status-badge">미연동</span>
+            </div>
+            <p class="small text-secondary mb-3">
+                자동매매를 위해 Binance Futures API Key가 필요합니다.<br>
+                입력하신 키는 암호화되어 서버에 안전하게 전송됩니다.
+            </p>
+            
+            <label class="small text-secondary">API Key</label>
+            <input type="text" class="form-control" placeholder="Binance API Key 입력">
+            
+            <label class="small text-secondary mt-2">Secret Key</label>
+            <input type="password" class="form-control" placeholder="Binance Secret Key 입력">
+            
+            <button class="btn-save" onclick="alert('지금은 데모 버전입니다.\n실제 연동 기능은 사장님이 파이썬 봇과 연결해야 합니다!')">
+                <i class="bi bi-check-circle"></i> API 키 저장 및 봇 시작
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 로그인 체크 (보안)
+        const userCode = sessionStorage.getItem("mango_user_code");
+        const userName = sessionStorage.getItem("mango_user_name");
+
+        if (!userCode || !userName) {
+            alert("로그인이 필요합니다.");
+            location.href = "/bot"; // 로그인 안 했으면 쫓아냄
+        } else {
+            document.getElementById('display-name').innerText = userName + "님";
+            loadMyData(userCode);
+        }
+
+        // 구글 시트에서 내 정보(수익금, 상태 등) 가져오기
+        function loadMyData(myCode) {
+            const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
+            const gid = '830244407'; // members 시트
+            const timestamp = new Date().getTime();
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
+
+            Papa.parse(csvUrl, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    const data = results.data;
+                    let myRow = null;
+
+                    for(let i=0; i<data.length; i++) {
+                        // A열(0)이 내 코드와 같은지 확인
+                        if(data[i][0] && data[i][0].toString().trim().toUpperCase() === myCode.toUpperCase()) {
+                            myRow = data[i];
+                            break;
+                        }
+                    }
+
+                    if(myRow) {
+                        // C열(2): 만료일, D열(3): 상태, E열(4): 봇상태, F열(5): 수익금, G열(6): API연동여부
+                        document.getElementById('display-date').innerText = "멤버십 만료일: " + (myRow[2] || "무제한");
+                        
+                        // 봇 상태 표시
+                        const botStat = myRow[4] || "OFF";
+                        const botEl = document.getElementById('bot-status');
+                        botEl.innerText = botStat;
+                        if(botStat.toUpperCase() === "ON") {
+                            botEl.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.6em; color:#2ecc71; vertical-align:middle;"></i> 가동중 (ON)';
+                            botEl.classList.add('bot-on');
+                        } else {
+                            botEl.innerHTML = '<i class="bi bi-circle-fill" style="font-size:0.6em; color:#e74c3c; vertical-align:middle;"></i> 정지됨 (OFF)';
+                            botEl.classList.add('bot-off');
+                        }
+
+                        // 수익금 표시
+                        const profit = myRow[5] || "0";
+                        document.getElementById('my-profit').innerText = "₩" + profit;
+
+                        // API 연동 뱃지
+                        const apiStat = myRow[6] || "미연동";
+                        const badge = document.getElementById('api-status-badge');
+                        badge.innerText = apiStat;
+                        if(apiStat.includes("연동")) {
+                            badge.className = "badge bg-success ms-2";
+                        }
+                    }
+                }
+            });
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            location.href = "/";
+        }
+    </script>
+</body>
+</html>

@@ -72,79 +72,75 @@
     </div>
 
     <script>
-        const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
-        const gid = '830244407'; // members 시트 GID
+    const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
+    const gid = '830244407'; 
 
-        function checkLogin() {
-            // 이름과 코드 둘 다 가져오기
-            const inputName = document.getElementById('user-name').value.trim();
-            const inputCode = document.getElementById('auth-code').value.trim();
-            
-            const errorMsg = document.getElementById('error-msg');
-            const btn = document.querySelector('.btn-login');
+    function checkLogin() {
+        const inputName = document.getElementById('user-name').value.trim();
+        const inputCode = document.getElementById('auth-code').value.trim();
+        const errorMsg = document.getElementById('error-msg');
+        const btn = document.querySelector('.btn-login');
 
-            // 둘 중 하나라도 비어있으면 경고
-            if(!inputName || !inputCode) {
-                alert("이름과 인증코드를 모두 입력해주세요.");
-                return;
-            }
-
-            btn.innerText = "확인 중...";
-            btn.disabled = true;
-            errorMsg.style.display = 'none';
-
-            const timestamp = new Date().getTime();
-            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
-
-            Papa.parse(csvUrl, {
-                download: true,
-                header: false, 
-                complete: function(results) {
-                    const data = results.data;
-                    let foundUser = null;
-
-                    for(let i=0; i<data.length; i++) {
-                        const row = data[i];
-                        // 시트 순서: A(0)=인증코드, B(1)=이름, C(2)=만료일, D(3)=상태
-                        const sheetCode = (row[0] || "").toString().trim();
-                        const sheetName = (row[1] || "").toString().trim();
-                        
-                        // [핵심] 이름과 코드가 *동시에* 맞아야 함
-                        if(sheetCode.toUpperCase() === inputCode.toUpperCase() && sheetName === inputName) {
-                            foundUser = row;
-                            break;
-                        }
-                    }
-
-                    if (foundUser) {
-                        const status = foundUser[3] || "사용중";
-                        
-                        if(status.includes("정지")) {
-                            errorMsg.innerText = "기간 만료 또는 정지된 계정입니다.";
-                            errorMsg.style.display = 'block';
-                        } else {
-                            // 로그인 성공! (일단 홈으로 보냅니다)
-                            alert(`${inputName}님 환영합니다!`);
-                            location.href = "/"; 
-                        }
-                    } else {
-                        // 보안을 위해 "이름이 틀렸다" "코드가 틀렸다" 구분하지 않고 뭉뚱그려 말함
-                        errorMsg.innerText = "이름 또는 인증코드가 올바르지 않습니다.";
-                        errorMsg.style.display = 'block';
-                    }
-
-                    btn.innerText = "입장하기";
-                    btn.disabled = false;
-                },
-                error: function(err) {
-                    console.error(err);
-                    errorMsg.innerText = "서버 연결 오류.";
-                    errorMsg.style.display = 'block';
-                    btn.innerText = "입장하기";
-                    btn.disabled = false;
-                }
-            });
+        if(!inputName || !inputCode) {
+            alert("이름과 인증코드를 모두 입력해주세요.");
+            return;
         }
-    </script>
+
+        btn.innerText = "확인 중...";
+        btn.disabled = true;
+        errorMsg.style.display = 'none';
+
+        const timestamp = new Date().getTime();
+        const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}&t=${timestamp}`;
+
+        Papa.parse(csvUrl, {
+            download: true,
+            header: false, 
+            complete: function(results) {
+                const data = results.data;
+                let foundUser = null;
+
+                for(let i=0; i<data.length; i++) {
+                    const row = data[i];
+                    // A(0)=코드, B(1)=이름
+                    const sheetCode = (row[0] || "").toString().trim();
+                    const sheetName = (row[1] || "").toString().trim();
+                    
+                    if(sheetCode.toUpperCase() === inputCode.toUpperCase() && sheetName === inputName) {
+                        foundUser = row;
+                        break;
+                    }
+                }
+
+                if (foundUser) {
+                    const status = foundUser[3] || "사용중"; // D열
+                    
+                    if(status.includes("정지")) {
+                        errorMsg.innerText = "기간 만료 또는 정지된 계정입니다.";
+                        errorMsg.style.display = 'block';
+                    } else {
+                        // [중요] 로그인 성공 시 브라우저에 사용자 정보 저장 (세션)
+                        sessionStorage.setItem("mango_user_code", foundUser[0]); // 코드 저장
+                        sessionStorage.setItem("mango_user_name", foundUser[1]); // 이름 저장
+                        
+                        alert(`${inputName}님 환영합니다!`);
+                        location.href = "/dashboard"; // 대시보드로 이동
+                    }
+                } else {
+                    errorMsg.innerText = "이름 또는 인증코드가 올바르지 않습니다.";
+                    errorMsg.style.display = 'block';
+                }
+                btn.innerText = "입장하기";
+                btn.disabled = false;
+            },
+            error: function(err) {
+                console.error(err);
+                errorMsg.innerText = "서버 연결 오류.";
+                errorMsg.style.display = 'block';
+                btn.disabled = false;
+            }
+        });
+    }
+</script>
 </body>
 </html>

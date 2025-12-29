@@ -22,5 +22,10 @@ def bot():
 def performance():
     return render_template('performance.html')
 
+# 5. 대시보드 페이지 (로그인 후 이동)
+@app.route('/dashboard')
+def dashboard():
+    return render_template('dashboard.html')
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
