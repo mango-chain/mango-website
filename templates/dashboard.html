@@ -142,9 +142,13 @@
                         <div class="mb-2">레버리지: <span class="status-value" id="disp-leverage">-</span></div>
                         <div class="mb-2">종목: <span class="status-value" id="disp-symbols">-</span></div>
                         <div class="mb-2">진입시드: <span class="status-value" id="disp-seed">-</span></div>
+                        
                         <div class="mt-3 pt-2 border-top border-secondary">
-                            나의 누적 수익: <span class="text-warning fw-bold fs-5" id="disp-profit">₩0</span>
+                            내 선물 계좌 잔고: <span class="text-warning fw-bold fs-5" id="my-balance">
+                                <span class="spinner-border spinner-border-sm" role="status"></span>
+                            </span>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -152,10 +156,8 @@
     </div>
 
     <script>
-        // ▼▼▼ 여기에 사장님의 URL을 넣었습니다! ▼▼▼
         const scriptUrl = 'https://script.google.com/macros/s/AKfycbzGOdzeCFy5iMye18107R_3Tbteq-5RJDFKKb9gH0nRg26fzyGUe0KeX-tKcka4PaQ4PQ/exec';
-        // ▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲▲
-
+        
         const sheetId = '1UpncS47X9zbM0FUNwOvr7jCIOsfkUugdmxgkDy1Ntlw';
         const gid = '830244407'; // members GID
         const userCode = sessionStorage.getItem("mango_user_code");
@@ -189,8 +191,6 @@
                     }
 
                     if(myRow) {
-                        // E(4):봇상태, F(5):수익, H(7):거래소, I(8):API, J(9):Secret, K(10):레버리지, L(11):종목, M(12):시드, N(13):포지션
-                        
                         // 1. 봇 상태
                         const botStat = (myRow[4] || "OFF").toUpperCase();
                         const toggle = document.getElementById('botToggle');
@@ -218,12 +218,44 @@
                         document.getElementById('disp-leverage').innerText = lev + "x";
                         document.getElementById('disp-symbols').innerText = symbols || "-";
                         document.getElementById('disp-seed').innerText = (myRow[12] || "0") + " USDT";
-                        document.getElementById('disp-profit').innerText = "₩" + (myRow[5] || "0");
+                        
+                        // [수정됨] 기존 수익금 표시는 주석 처리하고 실제 잔액 조회를 실행합니다
+                        // document.getElementById('disp-profit').innerText = "₩" + (myRow[5] || "0");
+                        
+                        // [신규] 실제 잔액 가져오기 (app.py API 호출)
+                        fetchRealBalance();
                         
                         // 4. 포지션 창
                         document.getElementById('position-display').innerText = myRow[13] || "현재 진입한 포지션이 없습니다.";
                     }
                 }
+            });
+        }
+
+        // [신규] 서버(app.py)에 요청해서 실제 잔액 가져오기
+        function fetchRealBalance() {
+            fetch('/api/balance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: userCode })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const balanceEl = document.getElementById('my-balance');
+                if (data.status === 'success') {
+                    // 소수점 2자리까지 표시 (예: 1,234.56 USDT)
+                    const balance = parseFloat(data.balance).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    balanceEl.innerText = balance + " USDT";
+                } else {
+                    balanceEl.innerText = "연동 실패";
+                    balanceEl.style.fontSize = "0.9rem";
+                    balanceEl.style.color = "#e74c3c";
+                    console.log("잔액 조회 실패:", data.message);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('my-balance').innerText = "오류";
             });
         }
 
